@@ -1,0 +1,28 @@
+{
+  "version": "0.3.1",
+  "version_code": 2026105001,
+  "application_id": "org.familynet.android.dev",
+  "label": "FamilyNet",
+  "abi": "arm64-v8a",
+  "elf_load_alignment": {
+    "lib/arm64-v8a/libapp.so": 65536,
+    "lib/arm64-v8a/libbarhopper_v3.so": 16384,
+    "lib/arm64-v8a/libclash.so": 16384,
+    "lib/arm64-v8a/libdartjni.so": 16384,
+    "lib/arm64-v8a/libdatastore_shared_counter.so": 16384,
+    "lib/arm64-v8a/libflutter.so": 65536,
+    "lib/arm64-v8a/libimage_processing_util_jni.so": 16384,
+    "lib/arm64-v8a/librust_api.so": 16384,
+    "lib/arm64-v8a/libsqlite3.so": 16384,
+    "lib/arm64-v8a/libsurface_util_jni.so": 16384
+  },
+  "signature_verified": true,
+  "zip_crc_verified": true,
+  "zip_alignment_16k_verified": true,
+  "signing": "local development key; not a production release key",
+  "device_tested": false,
+  "bytes": 60811151,
+  "sha256": "5975d2d80ad99155d651aa1bf24506d1b1729daa71446eee164d938af60766da",
+  "sdk": "sdkVersion:'24'",
+  "target_sdk": "targetSdkVersion:'37'"
+}

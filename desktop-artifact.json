@@ -1,0 +1,26 @@
+{
+  "version": "0.3.5",
+  "linux_native_passed": 19,
+  "desktop_unit_passed": 578,
+  "windows_executed": false,
+  "windows_pe_icon_and_version_verified": true,
+  "runtime_asset_digests_verified": true,
+  "windows_zip_crc_verified": true,
+  "deb_files_match_native_tested_linux": true,
+  "shared_app_icon_verified": true,
+  "host_network_changed": false,
+  "artifacts": {
+    "FamilyNet-Client-0.3.5-linux-x64.tar.gz": {
+      "bytes": 205095695,
+      "sha256": "67b1c4978c9d77c6dd8a121497335ae579bdfd6bad3d4908f81d3ccf51e14edd"
+    },
+    "FamilyNet-Client-0.3.5-windows-x64.zip": {
+      "bytes": 242764207,
+      "sha256": "3ba1a4136ae0fc9baff4a256b91837bf92e4cc86d3548d6b6face4442d28fba3"
+    },
+    "FamilyNet-Desktop-0.3.5-ubuntu-amd64.deb": {
+      "bytes": 205100404,
+      "sha256": "f88d5da5af31aa5ce4b09e2fa3e6bdd25640423552a867ace7d92a7825d29478"
+    }
+  }
+}

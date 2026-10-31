@@ -1,6 +1,6 @@
 {
-  "version": "0.3.2",
-  "version_code": 2026105002,
+  "version": "0.3.3",
+  "version_code": 2026105101,
   "application_id": "org.familynet.android.dev",
   "label": "FamilyNet",
   "abi": "arm64-v8a",
@@ -21,11 +21,17 @@
   "zip_alignment_16k_verified": true,
   "signing": "local development key; not a production release key",
   "device_tested": false,
-  "bytes": 60768579,
-  "sha256": "4c4d71f7c1b12157bce08d4da7bfd0e67237e567c5fba2635721c28445a64fa3",
+  "bytes": 60901351,
+  "sha256": "47c368d7b8f8cfbe4c0bb6686a2a923ecc666a772b2c04ae1ec801c196e2ee20",
   "sdk": "sdkVersion:'24'",
   "target_sdk": "targetSdkVersion:'37'",
   "signing_certificate_sha256": "10c3ff669358e262b2bfa4710fb92b245ac3e926e5f94476b21e95bf38ae534f",
-  "same_signer_as_0_3_1": true,
-  "native_channel_names_verified_in_dex": true
+  "same_signer_as_0_3_2": true,
+  "native_channel_names_verified_in_dex": true,
+  "packaged_original_icon_verified": true,
+  "launcher_foreground_paths": [
+    "res/Qr.xml"
+  ],
+  "legacy_launcher_icon_path": "res/d2.webp",
+  "app_icon_sha256": "4d966beaae0bcd60d3c9b35ce215967abf3ce9cd308f22775214d262a7c5f9e8"
 }

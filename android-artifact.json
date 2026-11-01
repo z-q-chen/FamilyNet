@@ -1,6 +1,6 @@
 {
-  "version": "0.3.6",
-  "version_code": 2026114103,
+  "version": "3.5.0",
+  "version_code": 2026114104,
   "application_id": "org.familynet.android.dev",
   "label": "FamilyNet",
   "abi": "arm64-v8a",
@@ -21,48 +21,34 @@
   "zip_alignment_16k_verified": true,
   "signing": "local development key; not a production release key",
   "device_tested": false,
-  "bytes": 60904843,
-  "sha256": "aaa687fc1401e1b49b37fceb3cd44436d621e4145711ca7581696ed49eeae57d",
+  "bytes": 60884717,
+  "sha256": "f5cfbae49e0aa6464950f25ce4e6594d1c8a77a6fcc49d7330c3f4d2f6b5de8d",
   "sdk": "sdkVersion:'24'",
   "target_sdk": "targetSdkVersion:'37'",
   "signing_certificate_sha256": "10c3ff669358e262b2bfa4710fb92b245ac3e926e5f94476b21e95bf38ae534f",
-  "same_signer_as_0_3_5": true,
+  "same_signer_as_0_3_6": true,
+  "application_identity_verified": true,
+  "application_icon_resource_id": "0x7f070095",
+  "application_icon_resource_id_changed": true,
+  "application_icon_pixels_verified": true,
+  "legacy_main_activity_alias_verified": true,
+  "default_and_round_adaptive_fallback_verified": true,
   "notification_small_icon_verified": true,
-  "notification_large_icon_verified": true,
+  "notification_right_image_removed": true,
+  "notification_identity_migration_present": true,
   "notification_icon_verified": true,
   "packaged_original_icon_verified": true,
-  "launcher_density_variants_verified": true,
-  "old_banner_removed": true,
   "brand_resource_paths": {
-    "ic_familynet_notification": [
+    "familynet_app_icon": [
+      "res/VJ.xml",
+      "res/HE.png"
+    ],
+    "familynet_app_icon_round": [
+      "res/sr.xml",
+      "res/t3.png"
+    ],
+    "notification_small": [
       "res/NO.xml"
-    ],
-    "ic": [
-      "res/A6.xml"
-    ],
-    "ic_launcher_foreground": [
-      "res/Qr.xml"
-    ],
-    "ic_launcher_foreground_tv": [
-      "res/QG.xml"
-    ],
-    "drawable/familynet_notification_large": [
-      "res/qA.png"
-    ],
-    "mipmap/ic_banner": [
-      "res/aC.png"
-    ],
-    "launcher_bitmaps": [
-      "res/d2.webp",
-      "res/5b.webp",
-      "res/MO.webp",
-      "res/Zq.webp",
-      "res/qs.webp",
-      "res/PR.webp",
-      "res/Sn.webp",
-      "res/-s.webp",
-      "res/sK.webp",
-      "res/zW.webp"
     ]
   },
   "native_channel_names_verified_in_dex": true,

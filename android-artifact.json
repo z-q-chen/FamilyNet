@@ -1,6 +1,7 @@
 {
-  "version": "3.5.0",
-  "version_code": 2026114104,
+  "version": "0.3.5",
+  "build_tag": "v0.3.5-notification-fix",
+  "version_code": 2026114105,
   "application_id": "org.familynet.android.dev",
   "label": "FamilyNet",
   "abi": "arm64-v8a",
@@ -22,7 +23,7 @@
   "signing": "local development key; not a production release key",
   "device_tested": false,
   "bytes": 60884717,
-  "sha256": "f5cfbae49e0aa6464950f25ce4e6594d1c8a77a6fcc49d7330c3f4d2f6b5de8d",
+  "sha256": "b2856281bd207407a5f8273defcdc053ca4c9fef7c5b3632663b75cd3986a1bc",
   "sdk": "sdkVersion:'24'",
   "target_sdk": "targetSdkVersion:'37'",
   "signing_certificate_sha256": "10c3ff669358e262b2bfa4710fb92b245ac3e926e5f94476b21e95bf38ae534f",

@@ -33,7 +33,6 @@ const old=bar?.closest('button')?.parentElement || card.querySelector('[data-thr
 if(!old||!old.parentElement)continue;
 const box=document.createElement('section');box.className='fn12';
 box.innerHTML='<div class="fn12-list"></div>';
-box.addEventListener('click',e=>e.stopPropagation());
 old.before(box);old.style.display='none';old.setAttribute('data-fn12-old','1');
 }
 }
@@ -94,4 +93,4 @@ if row:
 db.commit();db.close()
 print('完成：原 Glassmorphism 页面 + 12 路 Ping（替换原延迟区，不重复）')
 print('其余在线时长、价格、剩余价值、流量、详情图表继续由原主题显示')
-print('打开 https://207.57.74.12:9443/?v=5')
+print('打开 https://207.57.74.12:9443/?v=11')

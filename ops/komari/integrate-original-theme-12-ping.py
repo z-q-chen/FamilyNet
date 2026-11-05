@@ -9,20 +9,16 @@ js=r"""(() => {
 'use strict';
 const groups=[['江苏','电信',39,40],['江苏','联通',27,30],['江苏','移动',28,31],['河北','电信',38,34],['河北','联通',32,35],['河北','移动',33,36]];
 const style=document.createElement('style');
-style.textContent=`
-.fn12{width:100%;margin:6px 0;color:inherit;cursor:default;container-type:inline-size;font-size:12px}
-.fn12 *{box-sizing:border-box}.fn12-h{display:flex;justify-content:space-between;gap:6px;margin-bottom:8px}
-.fn12-info{font-size:10px;opacity:.7}.fn12-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
-.fn12-group{border:1px solid rgba(140,170,200,.13);border-radius:10px;padding:8px;background:rgba(110,145,170,.09);min-width:0}
-.fn12-title{font-weight:700;margin-bottom:5px}
-.fn12-lane{display:grid;grid-template-columns:23px 55px minmax(22px,1fr) 33px;gap:4px;align-items:center;border-top:1px solid rgba(140,170,200,.12);min-height:25px}
-.fn12-ip,.fn12-loss{font-size:10px;opacity:.75}.fn12-v{font-size:11px;font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums}
-.fn12-bars{height:15px;display:flex;gap:1px;align-items:end;min-width:0}
-.fn12-bars i{display:block;flex:1;background:#47c797;border-radius:2px 2px 0 0;min-width:1px}.fn12-bars i.bad{background:#e27676}
-.fn12-total{opacity:.75;font-size:10px;text-align:right;margin-top:6px}
-@container(max-width:750px){.fn12-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
-@container(max-width:470px){.fn12-grid{grid-template-columns:1fr!important}}
-`;document.head.appendChild(style);
+style.textContent=`.fn12{display:flex;flex-direction:column;gap:12px;width:100%;margin:0;padding:0;color:inherit;cursor:default;font-size:12px}
+.fn12 *{box-sizing:border-box}.fn12-panel{background:rgba(122,142,179,.085);border-radius:17px;padding:16px 18px}
+.fn12-title{display:flex;align-items:center;gap:10px;font-weight:650;font-size:14px;margin-bottom:12px}
+.fn12-dot{width:12px;height:12px;flex:none;border-radius:100%;background:#a4e73c}.fn12-dot.warn{background:#efda41}.fn12-dot.bad{background:#e77777}.fn12-dot.empty{background:#8b9bad}
+.fn12-summary{display:flex;justify-content:space-between;gap:8px;font-size:12px;margin-bottom:5px}
+.fn12-line{display:grid;grid-template-columns:107px minmax(0,1fr);gap:6px;align-items:center;margin-top:8px}
+.fn12-label{font-size:12px;opacity:.75;white-space:nowrap}.fn12-bars{display:grid;grid-template-columns:repeat(20,minmax(0,1fr));gap:3px;align-items:center;min-width:0}
+.fn12-bars i{display:block;border-radius:2px;height:11px;background:#a4e63d}.fn12-bars i.warn{background:#f2d53c}.fn12-bars i.bad{background:#e47777}.fn12-bars i.empty{background:rgba(140,160,180,.16)}
+.fn12-bars.failure i{background:#2ac996}.fn12-bars.failure i.bad{background:#e47777}
+@media(max-width:600px){.fn12-panel{padding:14px}.fn12-line{grid-template-columns:90px minmax(0,1fr);gap:4px}.fn12-bars{gap:2px}.fn12-label,.fn12-summary{font-size:11px}}`;document.head.appendChild(style);
 let req=0,busy=false;
 async function rpc(method,params={}) {
 const r=await fetch('/api/rpc2',{method:'POST',credentials:'same-origin',cache:'no-store',headers:{'Content-Type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',id:++req,method,params})});
@@ -36,22 +32,30 @@ const bar=card.querySelector('[data-node-ping-bars="latency"]');
 const old=bar?.closest('button')?.parentElement || card.querySelector('[data-three-net-ping]');
 if(!old||!old.parentElement)continue;
 const box=document.createElement('section');box.className='fn12';
-box.innerHTML='<div class="fn12-h"><b>江苏 / 河北 · 六组十二路</b><span class="fn12-info">读取中…</span></div><div class="fn12-grid"></div><div class="fn12-total"></div>';
+box.innerHTML='<div class="fn12-list"></div>';
 box.addEventListener('click',e=>e.stopPropagation());
 old.before(box);old.style.display='none';old.setAttribute('data-fn12-old','1');
 }
 }
-function bars(rs){
-if(!rs.length)return '—';
-let hi=Math.max(100,...rs.filter(r=>Number(r.value)>=0).map(r=>Number(r.value)));
-return '<span class="fn12-bars">'+rs.map(r=>{let v=Number(r.value);return '<i'+(v<0?' class="bad"':'')+' style="height:'+(v<0?5:Math.max(8,Math.round(100*v/hi)))+'%"></i>'}).join('')+'</span>';
+function barrow(records, failures){
+const rs=records.slice(-20);let html='';
+for(let i=rs.length;i<20;i++)html+='<i class="empty"></i>';
+for(const r of rs){const v=Number(r.value);
+const color=v<0?'bad':(!failures&&v>150?'warn':'');
+html+='<i class="'+color+'" title="'+(v<0?'探测失败':v+'ms')+'"></i>';}
+return '<span class="fn12-bars'+(failures?' failure':'')+'">'+html+'</span>';
 }
-function lane(ip,id,m,now){
-let rs=(m.get(id)||[]).sort((a,b)=>new Date(a.time)-new Date(b.time)).slice(-24);
-let p=now?.[String(id)];
-let value=p&&Number.isFinite(Number(p.latest))?Number(p.latest):rs.length?Number(rs.at(-1).value):null;
-let loss=p&&Number.isFinite(Number(p.loss))?Number(p.loss).toFixed(1):rs.length?(rs.filter(r=>Number(r.value)<0).length*100/rs.length).toFixed(1):'—';
-return '<div class="fn12-lane"><span class="fn12-ip">'+ip+'</span><span class="fn12-v">'+(value===null?'—':value<0?'丢包':value+'ms')+'</span>'+bars(rs)+'<span class="fn12-loss">'+(loss==='—'?'—':loss+'%')+'</span></div>';
+function panel(id,name,byId,ping){
+const rs=(byId.get(id)||[]).slice().sort((a,b)=>new Date(a.time)-new Date(b.time));
+const p=ping?.[String(id)],last=rs.at(-1);
+const latest=p&&Number.isFinite(Number(p.latest))?Number(p.latest):last?Number(last.value):null;
+const loss=p&&Number.isFinite(Number(p.loss))?Number(p.loss):rs.length?100*rs.filter(r=>Number(r.value)<0).length/rs.length:null;
+const dot=latest===null?'empty':latest<0?'bad':latest>150?'warn':'';
+return '<section class="fn12-panel"><div class="fn12-title"><i class="fn12-dot '+dot+'"></i>'+name+'</div>'+
+'<div class="fn12-summary"><span>延迟 '+(latest===null?'—':latest<0?'不可达':latest+' ms')+'</span>'+
+'<span>连接失败率 '+(loss===null?'—':loss.toFixed(1)+'%')+'</span></div>'+
+'<div class="fn12-line"><span class="fn12-label">延迟</span>'+barrow(rs,false)+'</div>'+
+'<div class="fn12-line"><span class="fn12-label">连接失败率</span>'+barrow(rs,true)+'</div></section>';
 }
 async function update(){
 mount();if(busy||document.hidden||location.pathname!=='/')return;busy=true;
@@ -66,11 +70,9 @@ const el=card?.querySelector('.fn12');if(!el)return;
 const hist=await rpc('public:getPingRecords',{uuid:node.uuid,hours:'1'});
 let m=new Map();(hist.records||[]).forEach(r=>{let id=Number(r.task_id);if(!m.has(id))m.set(id,[]);m.get(id).push(r)});
 const st=sts?.[node.uuid]||{};
-el.querySelector('.fn12-grid').innerHTML=groups.map(g=>'<div class="fn12-group"><div class="fn12-title">'+g[0]+' · '+g[1]+'</div>'+lane('v4',g[2],m,st.ping)+lane('v6',g[3],m,st.ping)+'</div>').join('');
-el.querySelector('.fn12-info').textContent='最近1小时 · 获取 '+new Date().toLocaleTimeString('zh-CN');
-const up=Number(st.net_total_up),down=Number(st.net_total_down);
-el.querySelector('.fn12-total').textContent=Number.isFinite(up)&&Number.isFinite(down)?'探针累计 ↑'+(up/1e9).toFixed(4)+'GB ↓'+(down/1e9).toFixed(4)+'GB'+(st.time?' · 上报 '+new Date(st.time).toLocaleTimeString('zh-CN'):''):'';
-}catch(e){document.querySelectorAll('.fn12-info').forEach(e1=>e1.textContent='数据错误：'+e.message)}finally{busy=false}
+const tasks=[...groups.map(g=>[g[2],g[0]+' · '+g[1]+' IPv4']),...groups.map(g=>[g[3],g[0]+' · '+g[1]+' IPv6'])];
+el.querySelector('.fn12-list').innerHTML=tasks.map(([id,name])=>panel(id,name,m,st.ping)).join('');
+}catch(e){document.querySelectorAll('.fn12-list').forEach(e1=>e1.textContent='Ping 数据读取失败：'+e.message)}finally{busy=false}
 }
 function start(){mount();update();setInterval(mount,3000);setInterval(update,30000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)update()})}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
@@ -82,7 +84,7 @@ html=index.read_text(encoding='utf-8')
 html=html.replace('<script src="/assets/fn-six-stage.js?v=1" defer></script>','')
 html=re.sub(r'<script src="/assets/fn-twelve-ping\.js\?v=\d+" defer></script>','',html)
 if '</body>' not in html: raise SystemExit('主题入口异常')
-index.write_text(html.replace('</body>','<script src="/assets/fn-twelve-ping.js?v=5" defer></script></body>',1),encoding='utf-8')
+index.write_text(html.replace('</body>','<script src="/assets/fn-twelve-ping.js?v=11" defer></script></body>',1),encoding='utf-8')
 db=sqlite3.connect(str(root/'komari.db'))
 db.execute('INSERT INTO configs (key,value) VALUES (?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value',('theme',json.dumps('Glassmorphism')))
 row=db.execute('SELECT data FROM theme_configurations WHERE short=?',('Glassmorphism',)).fetchone()

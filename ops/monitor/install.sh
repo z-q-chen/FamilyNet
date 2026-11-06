@@ -12,8 +12,16 @@ for cmd in python3 curl systemctl tar grep; do
     exit 1
   fi
 done
-if ! command -v caddy >/dev/null 2>&1; then
-  echo "未发现 Caddy；不会修改 9443 或 Komari。" >&2
+# FamilyNet bundles Caddy outside PATH and manages it with a shared service.
+CADDY_BIN=/usr/local/lib/familynet/caddy
+CADDY=/etc/familynet-subscription/Caddyfile
+CADDY_SERVICE=familynet-subscription.service
+if [ ! -x "$CADDY_BIN" ] || [ ! -f "$CADDY" ]; then
+  echo "未发现 FamilyNet 内置 Caddy 或订阅 Caddyfile，原服务保持不变。" >&2
+  exit 1
+fi
+if ! systemctl is-active --quiet "$CADDY_SERVICE"; then
+  echo "FamilyNet HTTPS 服务没有运行，拒绝更改 9443。" >&2
   exit 1
 fi
 
@@ -21,7 +29,6 @@ APP=/opt/familynet-monitor
 ETC=/etc/familynet-monitor
 DATA=/var/lib/familynet-monitor
 BACK=/var/backups/familynet-monitor/$(date -u +%Y%m%dT%H%M%SZ)
-CADDY=/etc/caddy/Caddyfile
 UNIT=/etc/systemd/system/familynet-monitor.service
 BASE=https://raw.githubusercontent.com/z-q-chen/FamilyNet/a9f194a035cb346cde2b88d788ce889b4c0ad236/ops/monitor
 TARGET=127.0.0.1:25775
@@ -50,8 +57,8 @@ rollback(){
   local status=$?
   if [ "$CUTOVER" -eq 1 ] && [ "$FINISHED" -eq 0 ]; then
     cp -p "$BACK/Caddyfile.before" "$CADDY"
-    caddy validate --config "$CADDY" --adapter caddyfile >/dev/null 2>&1 || true
-    systemctl reload caddy || true
+    "$CADDY_BIN" validate --config "$CADDY" --adapter caddyfile >/dev/null 2>&1 || true
+    "$CADDY_BIN" reload --config "$CADDY" --adapter caddyfile || true
   fi
   if [ "$FINISHED" -eq 0 ]; then
     echo "未完成切换，原 Komari 保持不删除；备份: $BACK" >&2
@@ -153,16 +160,20 @@ python3 - "$CADDY" <<'PY'
 import pathlib, re, sys
 path = pathlib.Path(sys.argv[1])
 s = path.read_text()
-pattern = r'(reverse_proxy\s+(?:http://)?(?:127\.0\.0\.1|localhost):)25774\b'
+if not re.search(r'(?<!\d)9443(?!\d)', s):
+    raise SystemExit("Caddyfile 未发现 9443 配置，拒绝更改。")
+# Replace only a single literal old upstream. Do not touch the other
+# FamilyNet subscription routes, ports or TLS settings.
+pattern = r'((?:http://)?(?:127\.0\.0\.1|localhost):)25774\b'
 found = list(re.finditer(pattern, s))
 if len(found) != 1:
-    raise SystemExit("Caddy 旧上游不是唯一的本地 25774；拒绝自动修改。")
+    raise SystemExit("Caddyfile 找不到唯一的 Komari 上游 25774；拒绝自动修改。")
 s = re.sub(pattern, r'\g<1>25775', s, count=1)
 path.write_text(s)
 PY
 
-caddy validate --config "$CADDY" --adapter caddyfile
-systemctl reload caddy
+"$CADDY_BIN" validate --config "$CADDY" --adapter caddyfile
+"$CADDY_BIN" reload --config "$CADDY" --adapter caddyfile
 sleep 2
 if ! curl -ksSf --connect-timeout 4 --max-time 8 \
      --resolve '207.57.74.12:9443:127.0.0.1' \

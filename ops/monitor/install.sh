@@ -88,15 +88,43 @@ if ! systemctl is-active --quiet familynet-subscription.service; then
   exit 1
 fi
 
-# Never mistake a Komari health endpoint for an already migrated monitor.
+# Recovery-aware preflight: a previous failed attempt may have left the
+# legacy Komari unit inactive, while its database and binary still exist.
+# Never delete anything before one of the two services is identified.
 if systemctl is-active --quiet komari.service; then
   ALREADY_MIGRATED=0
 elif local_http "$LIVE_PORT" /api/state 2>/dev/null | python3 -c \
    'import json,sys; d=json.load(sys.stdin); assert "quota_mode" in d and "baseline_source" in d' 2>/dev/null; then
   ALREADY_MIGRATED=1
 else
-  echo "原 Komari 未运行，也未检测到已迁移的 FamilyNet Monitor；拒绝切换。"
-  exit 1
+  echo "Komari 当前未运行，先尝试恢复旧服务..."
+  systemctl reset-failed komari.service >/dev/null 2>&1 || true
+  if systemctl start komari.service; then
+    for _ in $(seq 1 15); do
+      if systemctl is-active --quiet komari.service && \
+         curl --noproxy '*' -fsS --max-time 3 \
+           "http://127.0.0.1:$LIVE_PORT/api/public" >/dev/null 2>&1; then
+        break
+      fi
+      sleep 1
+    done
+  fi
+  if systemctl is-active --quiet komari.service && \
+     curl --noproxy '*' -fsS --max-time 5 \
+       "http://127.0.0.1:$LIVE_PORT/api/public" >/dev/null 2>&1; then
+    systemctl start komari-agent.service >/dev/null 2>&1 || true
+    ALREADY_MIGRATED=0
+    echo "Komari 已恢复，将从原探针迁移流量。"
+  else
+    echo "原服务无法恢复，拒绝接管端口或删除旧数据。" >&2
+    systemctl status komari.service --no-pager -l 2>&1 | tail -n 25 || true
+    echo "端口状态：" >&2
+    ss -lntp 2>/dev/null | grep -E ':(25774|25775|9443)\b' || true
+    echo "旧数据库：" >&2
+    ls -lh /var/lib/komari/komari.db /var/lib/komari/data/metrics.db 2>/dev/null || true
+    echo "请保留以上诊断输出。" >&2
+    exit 1
+  fi
 fi
 
 mkdir -p "$APP" "$ETC" "$DATA" "$BACK"

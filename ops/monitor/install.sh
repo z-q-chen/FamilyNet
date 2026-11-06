@@ -13,7 +13,7 @@ DATA=/var/lib/familynet-monitor
 UNIT=/etc/systemd/system/familynet-monitor.service
 CRED=/root/familynet-monitor-credentials.txt
 BACK=/var/backups/familynet-monitor/$(date -u +%Y%m%dT%H%M%SZ)
-BASE=https://raw.githubusercontent.com/z-q-chen/FamilyNet/0676f5d0d32d60e15d2e080a591ab8d4005fb80f/ops/monitor
+BASE=https://raw.githubusercontent.com/z-q-chen/FamilyNet/09143c23b6e432a2e5f891cfa4d1ed8786d333b1/ops/monitor
 PUBLIC_IP=207.57.74.12
 STAGING_PORT=25775
 LIVE_PORT=25774
@@ -88,11 +88,14 @@ if ! systemctl is-active --quiet familynet-subscription.service; then
   exit 1
 fi
 
-# Detect a previous successful port takeover (safe reinstall/upgrade).
-if local_http "$LIVE_PORT" /healthz 2>/dev/null | grep -q '"status":"ok"'; then
+# Never mistake a Komari health endpoint for an already migrated monitor.
+if systemctl is-active --quiet komari.service; then
+  ALREADY_MIGRATED=0
+elif local_http "$LIVE_PORT" /api/state 2>/dev/null | python3 -c \
+   'import json,sys; d=json.load(sys.stdin); assert "quota_mode" in d and "baseline_source" in d' 2>/dev/null; then
   ALREADY_MIGRATED=1
-elif ! systemctl is-active --quiet komari.service; then
-  echo "25774 不是已运行的 Komari，且不存在已运行的 FamilyNet Monitor；拒绝切换。"
+else
+  echo "原 Komari 未运行，也未检测到已迁移的 FamilyNet Monitor；拒绝切换。"
   exit 1
 fi
 

@@ -631,7 +631,7 @@ class Monitor:
         return {
             "time": int(now), "hostname": socket.gethostname(),
             "interface": self.cfg["interface"],
-            "uptime": uptime, "cpu": cpu,
+            "uptime": uptime, "cpu": cpu, "cpu_cores": os.cpu_count() or 0,
             "memory_total": mem_total, "memory_used": mem_used,
             "disk_total": disk.total, "disk_used": disk.used,
             "rxps": rxps, "txps": txps, "used": used,

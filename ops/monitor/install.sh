@@ -53,12 +53,32 @@ for unit in komari komari-agent komari-server; do
   systemctl cat "$unit" >"$BACK/$unit.unit" 2>/dev/null || true
 done
 
+reload_familynet_caddy(){
+  # Prefer Caddy's graceful configuration API. The existing FamilyNet
+  # process must stay running; never restart the subscription service.
+  if "$CADDY_BIN" reload --config "$CADDY" --adapter caddyfile; then
+    return 0
+  fi
+  local pid
+  pid=$(systemctl show "$CADDY_SERVICE" -p MainPID --value)
+  if [[ "$pid" =~ ^[0-9]+$ ]] && [ "$pid" -gt 1 ] && \
+     [ -e "/proc/$pid/exe" ] && \
+     [ "$(readlink -f "/proc/$pid/exe")" = "$CADDY_BIN" ]; then
+    # This running instance was started with caddy run --config.
+    # SIGUSR1 re-reads its Caddyfile when API reload is unavailable.
+    kill -USR1 "$pid"
+    sleep 2
+    return 0
+  fi
+  return 1
+}
+
 rollback(){
   local status=$?
   if [ "$CUTOVER" -eq 1 ] && [ "$FINISHED" -eq 0 ]; then
     cp -p "$BACK/Caddyfile.before" "$CADDY"
     "$CADDY_BIN" validate --config "$CADDY" --adapter caddyfile >/dev/null 2>&1 || true
-    "$CADDY_BIN" reload --config "$CADDY" --adapter caddyfile || true
+    reload_familynet_caddy || true
   fi
   if [ "$FINISHED" -eq 0 ]; then
     echo "未完成切换，原 Komari 保持不删除；备份: $BACK" >&2
@@ -173,7 +193,7 @@ path.write_text(s)
 PY
 
 "$CADDY_BIN" validate --config "$CADDY" --adapter caddyfile
-"$CADDY_BIN" reload --config "$CADDY" --adapter caddyfile
+reload_familynet_caddy
 sleep 2
 if ! curl -ksSf --connect-timeout 4 --max-time 8 \
      --resolve '207.57.74.12:9443:127.0.0.1' \

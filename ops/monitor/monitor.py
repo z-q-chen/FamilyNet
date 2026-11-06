@@ -2,6 +2,7 @@
 """FamilyNet Monitor: local-only system metrics, traffic history and TCP checks."""
 import argparse
 import base64
+import binascii
 import calendar
 import hashlib
 import hmac
@@ -459,7 +460,7 @@ def handler_factory(app):
                 computed = hashlib.pbkdf2_hmac("sha256", password.encode(), salt, 140000)
                 return hmac.compare_digest(name, app.cfg["username"]) and \
                     hmac.compare_digest(computed.hex(), app.cfg["password_hash"])
-            except (ValueError, UnicodeError):
+            except (ValueError, UnicodeError, binascii.Error):
                 return False
 
         def do_GET(self):

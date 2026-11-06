@@ -82,14 +82,18 @@ def make_config(password):
                 ]
             try:
                 c.row_factory = sqlite3.Row
-                node = c.execute("SELECT * FROM nodes LIMIT 1").fetchone()
+                # Upstream Komari stores monitored node metadata in clients.
+                # Keep a legacy fallback for older or customized installations.
+                table_names = {row[0] for row in c.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+                table = "clients" if "clients" in table_names else ("nodes" if "nodes" in table_names else None)
+                node = c.execute("SELECT * FROM " + table + " LIMIT 1").fetchone() if table else None
                 if node:
                     fields = dict(node)
                     quota = fields.get("traffic_limit")
                     if quota is not None and float(quota) > 0:
                         result["quota_gib"] = round(float(quota) / 1024**3, 4)
                     mode = fields.get("traffic_limit_type")
-                    if mode in ("sum", "up", "down", "max"):
+                    if mode in ("sum", "up", "down", "max", "min"):
                         result["quota_mode"] = mode
                     price = fields.get("price")
                     if price is not None and float(price) > 0:
@@ -365,7 +369,7 @@ class Monitor:
         down_total = int(values[0])
         mode = self.cfg.get("quota_mode", "sum")
         used = {"up": up_total, "down": down_total, "max": max(up_total, down_total),
-                "sum": up_total + down_total}.get(mode, up_total + down_total)
+                "sum": up_total + down_total, "min": min(up_total, down_total)}.get(mode, up_total + down_total)
         return {
             "time": int(now), "hostname": socket.gethostname(),
             "interface": self.cfg["interface"],

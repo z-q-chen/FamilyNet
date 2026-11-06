@@ -403,6 +403,7 @@ function renderChart(data){
       svg+='<circle cx="'+x+'" cy="'+(h-bottom-(h-bottom-top)*data[idx].down/max)+'" r="5" fill="#5a9fd5" stroke="#fff" stroke-width="2"/>';
     }
   }
+  svg+='<rect x="0" y="0" width="900" height="190" fill="transparent" pointer-events="all"/>';
   svg+='</svg>';
   el("trafficChart").innerHTML=svg;
   var chart=el("trafficChart").querySelector("svg");

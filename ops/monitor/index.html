@@ -211,7 +211,7 @@ function escape(s){return String(s===undefined||s===null?"":s).replace(/[&<>"']/
 function authHeader(password){var bytes=new TextEncoder().encode("admin:"+password),v="";bytes.forEach(function(b){v+=String.fromCharCode(b)});return "Basic "+btoa(v)}
 async function api(url,isPrivate){var opts={cache:"no-store",credentials:"same-origin"};if(isPrivate&&auditAuth)opts.headers={Authorization:auditAuth};var r=await fetch(url,opts);if(r.status===401){var err=new Error("unauthorized");err.authFailure=true;throw err}if(!r.ok)throw new Error(String(r.status));return r.json()}
 function showAuditGate(){auditAuth="";stampAudit=0;el("auditGate").hidden=false;el("auditContent").hidden=true;el("auditPassword").value="";text("authError","")}
-async function unlockAudit(password){auditAuth=authHeader(password);try{await api("/api/auth",true);el("auditGate").hidden=true;el("auditContent").hidden=false;el("auditPassword").value="";text("authError","");stampAudit=0;refresh()}catch(e){auditAuth="";el("auditPassword").value="";text("authError",e.authFailure?"密码错误":"验证失败，请重试")}}
+async function unlockAudit(password){auditAuth=authHeader(password);try{await api("/api/state?audit=auth",true);el("auditGate").hidden=true;el("auditContent").hidden=false;el("auditPassword").value="";text("authError","");stampAudit=0;refresh()}catch(e){auditAuth="";el("auditPassword").value="";text("authError",e.authFailure?"密码错误":"连接验证接口失败，请检查网络")}}
 function setActive(status){el("dot").classList.toggle("off",!status);text("activity",status?"已连接":"连接异常")}
 function renderState(s){
   text("serverName",s.title||s.hostname||"洛杉矶 VPS");
@@ -336,7 +336,7 @@ async function refresh(){
       var p=await api("/api/pings");renderPings(p);stampPing=Date.now();
     }
     if(page==="audit"&&auditAuth&&(Date.now()-stampAudit>15000||!stampAudit)){
-      var all=await Promise.all([api("/api/history?hours="+hours,true),api("/api/flows?hours="+hours,true)]);
+      var all=await Promise.all([api("/api/state?audit=history&hours="+hours,true),api("/api/state?audit=flows&hours="+hours,true)]);
       renderAudit(all[0],all[1]);stampAudit=Date.now();
     }
   }catch(e){if(e.authFailure){showAuditGate()}else{setActive(false);text("report",loaded?"连接中断 · "+time(Date.now()/1000):"无法连接监控服务")}}

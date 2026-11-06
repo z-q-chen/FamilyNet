@@ -607,6 +607,109 @@ def collector_loop(store, cfg):
 
 
 
+
+# PTR names and well-established provider ranges are only identification hints.
+SERVICE_HINTS = (
+    ("googlevideo.com", "YouTube"),
+    ("youtube.com", "YouTube"),
+    ("ytimg.com", "YouTube"),
+    ("ggpht.com", "Google"),
+    ("1e100.net", "Google 系列"),
+    ("google.com", "Google"),
+    ("googleusercontent.com", "Google"),
+    ("gstatic.com", "Google"),
+    ("chatgpt.com", "ChatGPT / OpenAI"),
+    ("openai.com", "ChatGPT / OpenAI"),
+    ("oaistatic.com", "ChatGPT / OpenAI"),
+    ("oaiusercontent.com", "ChatGPT / OpenAI"),
+    ("github.com", "GitHub"),
+    ("githubusercontent.com", "GitHub"),
+    ("githubassets.com", "GitHub"),
+    ("huggingface.co", "Hugging Face"),
+    ("hf.co", "Hugging Face"),
+    ("discord.com", "Discord"),
+    ("discordapp.net", "Discord"),
+    ("telegram.org", "Telegram"),
+    ("t.me", "Telegram"),
+    ("whatsapp.net", "WhatsApp"),
+    ("facebook.com", "Meta"),
+    ("fbcdn.net", "Meta"),
+    ("instagram.com", "Instagram"),
+    ("tiktokcdn.com", "TikTok"),
+    ("tiktok.com", "TikTok"),
+    ("byteoversea.com", "字节系"),
+    ("microsoft.com", "Microsoft"),
+    ("microsoftonline.com", "Microsoft"),
+    ("office.com", "Microsoft 365"),
+    ("azureedge.net", "Azure / CDN"),
+    ("bing.com", "Bing"),
+    ("apple.com", "Apple"),
+    ("mzstatic.com", "Apple"),
+    ("icloud.com", "iCloud"),
+    ("nflxvideo.net", "Netflix"),
+    ("netflix.com", "Netflix"),
+    ("twitch.tv", "Twitch"),
+    ("steamcontent.com", "Steam"),
+    ("steampowered.com", "Steam"),
+    ("cloudflare.com", "Cloudflare / CDN"),
+    ("cloudflare.net", "Cloudflare / CDN"),
+    ("cloudfront.net", "AWS CloudFront"),
+    ("amazonaws.com", "AWS"),
+    ("amazon.com", "Amazon"),
+    ("fastly.net", "Fastly CDN"),
+    ("akamaiedge.net", "Akamai CDN"),
+    ("akamai.net", "Akamai CDN"),
+    ("edgekey.net", "Akamai CDN"),
+)
+IP_HINTS = (
+    ("142.250.0.0/15", "Google 系列"),
+    ("172.217.0.0/16", "Google 系列"),
+    ("216.58.0.0/16", "Google 系列"),
+    ("74.125.0.0/16", "Google 系列"),
+    ("140.82.112.0/20", "GitHub"),
+    ("185.199.108.0/22", "GitHub"),
+    ("17.0.0.0/8", "Apple"),
+    ("104.16.0.0/13", "Cloudflare / CDN"),
+    ("172.64.0.0/13", "Cloudflare / CDN"),
+)
+IP_NETWORKS = tuple((ipaddress.ip_network(a), b) for a, b in IP_HINTS)
+
+
+def reverse_name(ip):
+    if not shutil.which("getent"):
+        return ""
+    try:
+        proc = subprocess.run(
+            ["getent", "hosts", ip], capture_output=True,
+            text=True, timeout=1.0, check=False
+        )
+        for line in proc.stdout.splitlines():
+            fields = line.split()
+            if len(fields) > 1 and fields[0] == ip:
+                return fields[1].rstrip(".").lower()[:160]
+    except (OSError, subprocess.TimeoutExpired):
+        pass
+    return ""
+
+
+def guess_service(ip, ptr):
+    host = (ptr or "").lower().strip(".")
+    for suffix, name in SERVICE_HINTS:
+        if host == suffix or host.endswith("." + suffix):
+            return name, "推测"
+    try:
+        addr = ipaddress.ip_address(ip)
+        for network, name in IP_NETWORKS:
+            if addr in network:
+                return name, "推测"
+    except ValueError:
+        pass
+    if host and host != ip:
+        return host[:54], "反向域名"
+    return "未识别 · " + ip, "未知"
+
+
+
 def komari_rpc(method, params=None):
     payload = json.dumps({
         "jsonrpc": "2.0", "id": 1,
@@ -837,20 +940,82 @@ class Monitor:
                  "history": by_id.get(str(task["id"]), [])}
                 for task in self.cfg["targets"]]
 
-    def flows(self, hours):
-        since = int(time.time()) - hours * 3600
-        data = self.db.execute("""
-            SELECT first_ts,last_ts,protocol,src,sport,dst,dport,
-                   original_bytes,reply_bytes
-            FROM flows WHERE last_ts>=?
-            ORDER BY original_bytes+reply_bytes DESC LIMIT 250
-        """, (since,))
+    def resolved_names(self, ips):
+        now = int(time.time())
+        ips = list(dict.fromkeys(ips))[:30]
+        known = {}
+        todo = []
+        for ip in ips:
+            row = self.db.execute(
+                "SELECT name,resolved_at FROM dest_names WHERE ip=?", (ip,)
+            )
+            if row and now - row[0][1] < (86400 * (7 if row[0][0] else 1)):
+                known[ip] = row[0][0]
+            else:
+                todo.append(ip)
+        if todo:
+            with ThreadPoolExecutor(max_workers=8) as executor:
+                results = list(executor.map(reverse_name, todo))
+            with self.db.lock, self.db.conn:
+                self.db.conn.executemany(
+                    "INSERT INTO dest_names(ip,name,resolved_at) VALUES(?,?,?) "
+                    "ON CONFLICT(ip) DO UPDATE SET name=excluded.name,"
+                    "resolved_at=excluded.resolved_at",
+                    [(ip, name, now) for ip, name in zip(todo, results)]
+                )
+            known.update(zip(todo, results))
+        return known
+
+    def flows(self, hours=24, start=None, end=None):
+        now = int(time.time())
+        if start is None or end is None:
+            end = now
+            start = end - hours * 3600
+        start = max(now - 31 * 86400, int(start))
+        end = min(now + 60, int(end))
+        if end <= start or end - start > 31 * 86400:
+            raise ValueError("invalid analysis range")
+        # Only aggregate persisted samples when the user opens a time bucket.
+        rows = self.db.execute("""
+            SELECT dst,dport,protocol,SUM(up),SUM(down),COUNT(*)
+            FROM flow_usage
+            WHERE bucket>=? AND bucket<?
+            GROUP BY dst,dport,protocol
+            ORDER BY SUM(up)+SUM(down) DESC LIMIT 200
+        """, (start, end))
+        names = self.resolved_names([r[0] for r in rows[:30]])
+        service_groups = {}
+        connections = []
+        captured = 0
+        for ip, port, proto, sent, received, samples in rows:
+            sent, received = int(sent), int(received)
+            captured += sent + received
+            name, confidence = guess_service(ip, names.get(ip, ""))
+            entry = {
+                "ip": ip, "port": port, "proto": proto, "name": name,
+                "confidence": confidence, "hostname": names.get(ip, ""),
+                "up": sent, "down": received,
+                "total": sent + received, "samples": samples
+            }
+            connections.append(entry)
+            if name not in service_groups:
+                service_groups[name] = {
+                    "name": name, "confidence": confidence, "up": 0,
+                    "down": 0, "total": 0, "connections": 0
+                }
+            group = service_groups[name]
+            group["up"] += sent
+            group["down"] += received
+            group["total"] += sent + received
+            group["connections"] += 1
+        groups = sorted(service_groups.values(), key=lambda item: item["total"], reverse=True)
+        for item in groups:
+            item["share"] = round(item["total"] * 100 / captured, 1) if captured else 0
         return {
-            "sampling": "conntrack" if shutil.which("conntrack") else "unavailable",
-            "rows": [{"start": a, "end": b, "protocol": p,
-                      "src": s, "sport": sp, "dst": d, "dport": dp,
-                      "up": u, "down": v}
-                     for a, b, p, s, sp, d, dp, u, v in data]
+            "source": getattr(self.db, "last_flow_source", "starting"),
+            "observed_connections": getattr(self.db, "last_flow_count", 0),
+            "start": start, "end": end, "captured": captured,
+            "services": groups[:40], "connections": connections[:80]
         }
 
 
@@ -911,15 +1076,20 @@ def handler_factory(app):
                     audit = query.get("audit", [None])[0]
                     if audit is None:
                         payload = app.state()
-                    elif audit in ("auth", "history", "flows"):
+                    elif audit in ("auth", "history", "flows", "rank"):
                         if not self.authorized():
                             return self.respond(401, '{"error":"unauthorized"}')
                         if audit == "auth":
                             payload = {"ok": True}
                         elif audit == "history":
                             payload = app.history(hours)
-                        else:
-                            payload = app.flows(hours)
+                        elif audit in ("flows", "rank"):
+                            def optional_time(name):
+                                values = query.get(name, [])
+                                return int(values[0]) if values else None
+                            payload = app.flows(
+                                hours, optional_time("start"), optional_time("end")
+                            )
                     else:
                         return self.respond(404, '{"error":"not found"}')
                 elif path.path == "/api/history":

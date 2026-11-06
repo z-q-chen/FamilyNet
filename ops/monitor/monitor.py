@@ -6,6 +6,7 @@ import binascii
 import calendar
 import hashlib
 import hmac
+import ipaddress
 import json
 import os
 from pathlib import Path
@@ -246,6 +247,17 @@ class Store:
                 dst TEXT NOT NULL, dport TEXT NOT NULL,
                 original_bytes INTEGER NOT NULL, reply_bytes INTEGER NOT NULL);
               CREATE INDEX IF NOT EXISTS flows_time ON flows(last_ts);
+              CREATE TABLE IF NOT EXISTS flow_usage(
+                bucket INTEGER NOT NULL, dst TEXT NOT NULL,
+                dport TEXT NOT NULL, protocol TEXT NOT NULL,
+                up INTEGER NOT NULL, down INTEGER NOT NULL,
+                PRIMARY KEY(bucket,dst,dport,protocol)
+              );
+              CREATE INDEX IF NOT EXISTS flow_usage_time ON flow_usage(bucket);
+              CREATE TABLE IF NOT EXISTS dest_names(
+                ip TEXT PRIMARY KEY, name TEXT NOT NULL,
+                resolved_at INTEGER NOT NULL
+              );
               CREATE TABLE IF NOT EXISTS monthly_counter (
                 id INTEGER PRIMARY KEY CHECK (id=1),
                 cycle_start INTEGER NOT NULL,
@@ -321,22 +333,59 @@ class Store:
                               (int(time.time()) - 86400,))
             self.conn.execute("DELETE FROM flows WHERE last_ts<?",
                               (int(time.time()) - 86400,))
+            self.conn.execute("DELETE FROM flow_usage WHERE bucket<?",
+                              (int(time.time()) - 31 * 86400,))
             # Retain original deltas; discarding intermediate deltas would
             # undercount totals when querying a time range.
             self.conn.execute("DELETE FROM traffic WHERE ts<?",
                               (int(time.time()) - 120 * 86400,))
 
-    def save_flows(self, rows):
+    def save_flows(self, rows, source):
         now = int(time.time())
+        bucket = (now // 60) * 60
+        aggregated = {}
         with self.lock, self.conn:
-            self.conn.executemany("""
-              INSERT INTO flows VALUES(?,?,?,?,?,?,?,?,?,?)
-              ON CONFLICT(id) DO UPDATE SET
-                last_ts=excluded.last_ts,
-                original_bytes=MAX(flows.original_bytes,excluded.original_bytes),
-                reply_bytes=MAX(flows.reply_bytes,excluded.reply_bytes)
-            """, [(x["id"], now, now, x["proto"], x["src"], x["sport"],
-                   x["dst"], x["dport"], x["up"], x["down"]) for x in rows])
+            for x in rows:
+                fid = x["id"]
+                prior = self.conn.execute(
+                    "SELECT original_bytes,reply_bytes FROM flows WHERE id=?",
+                    (fid,)
+                ).fetchone()
+                new_up, new_down = max(0, int(x["up"])), max(0, int(x["down"]))
+                # New sessions begin at zero; retained snapshots survive restarts.
+                du = max(0, new_up - prior[0]) if prior else new_up
+                dd = max(0, new_down - prior[1]) if prior else new_down
+                # A reused connection tuple has reset its counters.
+                if prior and new_up < prior[0]:
+                    du = new_up
+                if prior and new_down < prior[1]:
+                    dd = new_down
+                self.conn.execute("""
+                    INSERT INTO flows VALUES(?,?,?,?,?,?,?,?,?,?)
+                    ON CONFLICT(id) DO UPDATE SET
+                      last_ts=excluded.last_ts,
+                      original_bytes=excluded.original_bytes,
+                      reply_bytes=excluded.reply_bytes
+                """, (fid, now, now, x["proto"], x["src"], x["sport"],
+                      x["dst"], x["dport"], new_up, new_down))
+                if not du and not dd:
+                    continue
+                key = (bucket, x["dst"], x["dport"], x["proto"])
+                current = aggregated.setdefault(key, [0, 0])
+                current[0] += du
+                current[1] += dd
+            if aggregated:
+                self.conn.executemany("""
+                    INSERT INTO flow_usage(bucket,dst,dport,protocol,up,down)
+                    VALUES(?,?,?,?,?,?)
+                    ON CONFLICT(bucket,dst,dport,protocol) DO UPDATE SET
+                      up=flow_usage.up+excluded.up,
+                      down=flow_usage.down+excluded.down
+                """, [(*k, v[0], v[1]) for k, v in aggregated.items()])
+        self.last_flow_source = source
+        self.last_flow_count = len(rows)
+        self.last_flow_at = now
+
 
 
 def ping_target(task):
@@ -391,41 +440,147 @@ CT_TUPLE = re.compile(r"(?:src|dst|sport|dport|bytes)=[^\s]+")
 CT_ID = re.compile(r"\bid=(\d+)\b")
 
 
-def capture_flows():
+def known_local_ips():
+    """Get local host interface addresses for distinguishing egress flows."""
+    try:
+        proc = subprocess.run(["ip", "-j", "address"], capture_output=True,
+                              text=True, timeout=3, check=False)
+        if proc.returncode == 0:
+            info = json.loads(proc.stdout)
+            return {
+                entry["local"] for nic in info for entry in nic.get("addr_info", [])
+                if entry.get("local")
+            }
+    except (OSError, ValueError, subprocess.TimeoutExpired):
+        pass
+    return set()
+
+
+def public_ip(value):
+    try:
+        return ipaddress.ip_address(value.split("%", 1)[0]).is_global
+    except ValueError:
+        return False
+
+
+def capture_conntrack(local_ips):
     if not shutil.which("conntrack"):
         return []
     try:
-        out = subprocess.run(
-            ["conntrack", "-L", "-o", "extended"], capture_output=True,
-            text=True, timeout=8, check=False
+        proc = subprocess.run(
+            ["conntrack", "-L", "-o", "extended"],
+            capture_output=True, text=True, timeout=10, check=False
         )
     except (OSError, subprocess.TimeoutExpired):
         return []
+    if proc.returncode not in (0, 1):
+        return []
     rows = []
-    for line in out.stdout.splitlines()[:6000]:
+    for line in proc.stdout.splitlines()[:10000]:
         if "bytes=" not in line:
             continue
-        parts = line.split()
-        proto = parts[0] if parts else "?"
-        pairs = {}
-        for key, value in re.findall(r"\b(src|dst|sport|dport|bytes)=([^\s]+)", line):
-            pairs.setdefault(key, []).append(value)
-        if any(len(pairs.get(k, [])) < 2 for k in ("src", "dst", "bytes")):
+        fields = re.findall(r"\b(src|dst|sport|dport|bytes)=([^\s]+)", line)
+        values = {}
+        for key, value in fields:
+            values.setdefault(key, []).append(value)
+        if any(len(values.get(key, [])) < 2 for key in ("src", "dst", "bytes")):
             continue
-        src, dst = pairs["src"][0], pairs["dst"][0]
-        sport = pairs.get("sport", [""])[0]
-        dport = pairs.get("dport", [""])[0]
+        src, dst = values["src"][0], values["dst"][0]
+        if src not in local_ips or not public_ip(dst):
+            continue
+        sport = values.get("sport", [""])[0]
+        dport = values.get("dport", [""])[0]
+        proto = line.split()[0]
         try:
-            up, down = int(pairs["bytes"][0]), int(pairs["bytes"][1])
-        except ValueError:
+            sent, received = int(values["bytes"][0]), int(values["bytes"][1])
+        except (ValueError, OverflowError):
             continue
         match = CT_ID.search(line)
-        raw_id = "|".join([proto, src, sport, dst, dport, match.group(1) if match else ""])
-        flow_id = hashlib.sha256(raw_id.encode()).hexdigest()[:28]
-        rows.append({"id": flow_id, "proto": proto,
-                     "src": src, "sport": sport, "dst": dst, "dport": dport,
-                     "up": up, "down": down})
+        token = "|".join(("ct", proto, src, sport, dst, dport,
+                          match.group(1) if match else ""))
+        rows.append({
+            "id": hashlib.sha256(token.encode()).hexdigest()[:30],
+            "proto": proto, "src": src, "sport": sport,
+            "dst": dst, "dport": dport,
+            "up": sent, "down": received
+        })
     return rows
+
+
+def split_endpoint(value):
+    text = value.strip().strip("[]")
+    if text.startswith("[") and "]:" in text:
+        host, port = text[1:].rsplit("]:", 1)
+    elif ":" in text:
+        host, port = text.rsplit(":", 1)
+    else:
+        return "", ""
+    return host.strip("[]"), port
+
+
+def capture_socket_bytes(local_ips):
+    """Fallback: Linux TCP_INFO bytes from ss, only when conntrack is empty."""
+    if not shutil.which("ss"):
+        return []
+    try:
+        proc = subprocess.run(["ss", "-Htin"], capture_output=True,
+                              text=True, timeout=7, check=False)
+    except (OSError, subprocess.TimeoutExpired):
+        return []
+    rows = []
+    header = None
+    info = []
+    def flush():
+        if not header:
+            return
+        parts = header.split()
+        if len(parts) < 5:
+            return
+        src, sport = split_endpoint(parts[3])
+        dst, dport = split_endpoint(parts[4])
+        if not dst or src not in local_ips or not public_ip(dst):
+            return
+        # Outbound TCP sockets normally use ephemeral source ports.
+        try:
+            if int(sport) < 10000:
+                return
+        except ValueError:
+            return
+        details = " ".join(info)
+        sent = re.search(r"\bbytes_sent:(\d+)", details)
+        received = re.search(r"\bbytes_received:(\d+)", details)
+        if not sent and not received:
+            return
+        token = "|".join(("ss", "tcp", src, sport, dst, dport))
+        rows.append({
+            "id": hashlib.sha256(token.encode()).hexdigest()[:30],
+            "proto": "tcp", "src": src, "sport": sport,
+            "dst": dst, "dport": dport,
+            "up": int(sent.group(1)) if sent else 0,
+            "down": int(received.group(1)) if received else 0
+        })
+    for line in proc.stdout.splitlines():
+        if line[:1].isspace():
+            info.append(line)
+        else:
+            flush()
+            header, info = line, []
+    flush()
+    return rows
+
+
+def capture_flows():
+    local_ips = known_local_ips()
+    if not local_ips:
+        return [], "no-local-ip"
+    rows = capture_conntrack(local_ips)
+    if rows:
+        return rows, "conntrack"
+    rows = capture_socket_bytes(local_ips)
+    if rows:
+        return rows, "tcp-info"
+    return [], "no-byte-counters"
+
 
 
 def collector_loop(store, cfg):
@@ -441,7 +596,8 @@ def collector_loop(store, cfg):
                 if cycle_start is not None:
                     rx, tx = read_iface(cfg["interface"])
                     store.monthly_count(cycle_start, rx, tx, boot_id(), time.time())
-            store.save_flows(capture_flows())
+            records, source = capture_flows()
+            store.save_flows(records, source)
             if time.time() - last_clean > 3600:
                 store.cleanup()
                 last_clean = time.time()
@@ -583,6 +739,9 @@ class Monitor:
         self.last_ticks = None
         self.last_live = None
         self.live_lock = threading.Lock()
+        self.db.last_flow_source = "starting"
+        self.db.last_flow_count = 0
+        self.db.last_flow_at = None
 
     def state(self):
         now = time.time()

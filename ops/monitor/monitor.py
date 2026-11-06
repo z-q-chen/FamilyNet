@@ -747,7 +747,22 @@ def handler_factory(app):
             try:
                 hours = max(1, min(720, int(query.get("hours", ["24"])[0])))
                 if path.path == "/api/state":
-                    payload = app.state()
+                    # Audit is tunneled through the already working state route.
+                    # Every private mode is authenticated independently.
+                    audit = query.get("audit", [None])[0]
+                    if audit is None:
+                        payload = app.state()
+                    elif audit in ("auth", "history", "flows"):
+                        if not self.authorized():
+                            return self.respond(401, '{"error":"unauthorized"}')
+                        if audit == "auth":
+                            payload = {"ok": True}
+                        elif audit == "history":
+                            payload = app.history(hours)
+                        else:
+                            payload = app.flows(hours)
+                    else:
+                        return self.respond(404, '{"error":"not found"}')
                 elif path.path == "/api/history":
                     payload = app.history(hours)
                 elif path.path == "/api/pings":

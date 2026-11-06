@@ -143,11 +143,11 @@ footer{text-align:center;color:#5f7288;font-size:11px;margin:28px 0 0}
       <div class="net-grid">
         <div class="netbox up">
           <div class="nettitle"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 17 10-10M7 7h10v10"/></svg>上传</div>
-          <div class="netvalue" id="netUp">—</div><div class="nettotal">已累计 <span id="totalUp">—</span></div>
+          <div class="netvalue" id="netUp">—</div><div class="nettotal">本周期 <span id="totalUp">—</span></div>
         </div>
         <div class="netbox down">
           <div class="nettitle"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 7v10h10M17 7 7 17"/></svg>下载</div>
-          <div class="netvalue" id="netDown">—</div><div class="nettotal">已累计 <span id="totalDown">—</span></div>
+          <div class="netvalue" id="netDown">—</div><div class="nettotal">本周期 <span id="totalDown">—</span></div>
         </div>
       </div>
     </div>
@@ -235,9 +235,9 @@ function renderState(s){
   el("mem").title=fmt(s.memory_used)+" / "+fmt(s.memory_total);
   el("disk").title=fmt(s.disk_used)+" / "+fmt(s.disk_total);
   text("netUp",fmt(s.txps)+"/s");text("netDown",fmt(s.rxps)+"/s");
-  text("totalUp",fmt(s.up_total));text("totalDown",fmt(s.down_total));
+  text("totalUp",fmt(s.cycle_up));text("totalDown",fmt(s.cycle_down));
   text("quotaValue",fmt(s.used)+" / "+fmt(s.quota));bar("quotaBar",pct(s.used,s.quota));
-  text("quotaHint",s.reset_day?"· 每月 "+s.reset_day+" 日重置":"· 自安装以来已记录");
+  text("quotaHint",s.next_reset_at?"下次重置 "+new Date(s.next_reset_at*1000).toLocaleDateString("zh-CN",{year:"numeric",month:"2-digit",day:"2-digit"}):"本周期");
   text("price","$"+Number(s.price_usd||0).toFixed(2)+" / "+(s.price_cycle_months===3?"季度":s.price_cycle_months+" 个月"));
   var exp=s.expires_at,dd=exp?Math.ceil((Date.parse(exp)-Date.now())/86400000):null;
   text("expire",dd===null||!Number.isFinite(dd)?"未设置":(dd>=0?dd+" 天":"已到期"));

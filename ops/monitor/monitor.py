@@ -19,7 +19,7 @@ import threading
 import time
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, urlparse
 
@@ -165,6 +165,32 @@ def reset_start(day, now=None):
     return int(datetime(y, m, curr).timestamp())
 
 
+def monthly_start_utc(now, reset_day, first_reset_at):
+    """Return UTC cycle start and next reset; None before the first reset."""
+    now_dt = datetime.fromtimestamp(now, timezone.utc)
+    day = max(1, min(31, int(reset_day)))
+    def boundary(year, month):
+        return datetime(year, month, min(day, calendar.monthrange(year, month)[1]), tzinfo=timezone.utc)
+    cur = boundary(now_dt.year, now_dt.month)
+    if cur.timestamp() > now:
+        y, m = (now_dt.year - 1, 12) if now_dt.month == 1 else (now_dt.year, now_dt.month - 1)
+        cur = boundary(y, m)
+    y, m = (cur.year + 1, 1) if cur.month == 12 else (cur.year, cur.month + 1)
+    next_reset = boundary(y, m)
+    if now < first_reset_at:
+        return None, int(first_reset_at)
+    if cur.timestamp() < first_reset_at:
+        cur = datetime.fromtimestamp(first_reset_at, timezone.utc)
+    return int(cur.timestamp()), int(next_reset.timestamp())
+
+
+def boot_id():
+    try:
+        return Path("/proc/sys/kernel/random/boot_id").read_text().strip()
+    except OSError:
+        return "unknown"
+
+
 class Store:
     def __init__(self):
         ROOT.mkdir(parents=True, exist_ok=True)
@@ -190,7 +216,46 @@ class Store:
                 dst TEXT NOT NULL, dport TEXT NOT NULL,
                 original_bytes INTEGER NOT NULL, reply_bytes INTEGER NOT NULL);
               CREATE INDEX IF NOT EXISTS flows_time ON flows(last_ts);
+              CREATE TABLE IF NOT EXISTS monthly_counter (
+                id INTEGER PRIMARY KEY CHECK (id=1),
+                cycle_start INTEGER NOT NULL,
+                boot_id TEXT NOT NULL,
+                last_rx INTEGER NOT NULL,
+                last_tx INTEGER NOT NULL,
+                sum_rx INTEGER NOT NULL,
+                sum_tx INTEGER NOT NULL,
+                updated_at INTEGER NOT NULL
+              );
             """)
+
+    def monthly_count(self, cycle_start, rx, tx, current_boot, now):
+        """Accumulate post-reset bytes, surviving monitor restarts and reboots."""
+        with self.lock, self.conn:
+            row = self.conn.execute(
+                "SELECT cycle_start,boot_id,last_rx,last_tx,sum_rx,sum_tx "
+                "FROM monthly_counter WHERE id=1"
+            ).fetchone()
+            if row is None or row[0] != cycle_start:
+                self.conn.execute(
+                    "INSERT OR REPLACE INTO monthly_counter VALUES(1,?,?,?,?,?,?,?)",
+                    (cycle_start, current_boot, rx, tx, 0, 0, int(now))
+                )
+                return 0, 0
+            _, prev_boot, last_rx, last_tx, sum_rx, sum_tx = row
+            if prev_boot != current_boot:
+                drx, dtx = rx, tx
+            else:
+                # Ignore out-of-order reads instead of introducing a jump.
+                drx, dtx = max(0, rx - last_rx), max(0, tx - last_tx)
+                rx, tx = max(last_rx, rx), max(last_tx, tx)
+            total_rx, total_tx = sum_rx + drx, sum_tx + dtx
+            if drx or dtx or prev_boot != current_boot:
+                self.conn.execute(
+                    "UPDATE monthly_counter SET boot_id=?,last_rx=?,last_tx=?,"
+                    "sum_rx=?,sum_tx=?,updated_at=? WHERE id=1",
+                    (current_boot, rx, tx, total_rx, total_tx, int(now))
+                )
+            return total_rx, total_tx
 
     def execute(self, sql, args=()):
         with self.lock:
@@ -322,6 +387,13 @@ def collector_loop(store, cfg):
         started = time.monotonic()
         try:
             store.sample(cfg["interface"])
+            first_reset = int(cfg.get("first_reset_at") or 0)
+            day = int(cfg.get("reset_day") or 0)
+            if first_reset and day:
+                cycle_start, _ = monthly_start_utc(time.time(), day, first_reset)
+                if cycle_start is not None:
+                    rx, tx = read_iface(cfg["interface"])
+                    store.monthly_count(cycle_start, rx, tx, boot_id(), time.time())
             store.save_flows(capture_flows())
             if time.time() - last_clean > 3600:
                 store.cleanup()
@@ -493,9 +565,25 @@ class Monitor:
         up_total = int(tx)
         down_total = int(rx)
         first_sample_row = self.db.execute("SELECT MIN(ts) FROM traffic")[0]
+        # First month: the kernel's since-boot bytes. Later months: a
+        # persisted billing counter starting at each configured reset time.
+        first_reset = int(self.cfg.get("first_reset_at") or 0)
+        reset_day = int(self.cfg.get("reset_day") or 0)
+        if first_reset > 0 and reset_day > 0:
+            cycle_start, next_reset = monthly_start_utc(now, reset_day, first_reset)
+        else:
+            cycle_start, next_reset = None, None
+        if cycle_start is None:
+            cycle_down, cycle_up = down_total, up_total
+        else:
+            cycle_down, cycle_up = self.db.monthly_count(
+                cycle_start, down_total, up_total, boot_id(), now
+            )
         mode = self.cfg.get("quota_mode", "sum")
-        used = {"up": up_total, "down": down_total, "max": max(up_total, down_total),
-                "sum": up_total + down_total, "min": min(up_total, down_total)}.get(mode, up_total + down_total)
+        used = {"up": cycle_up, "down": cycle_down,
+                "max": max(cycle_up, cycle_down),
+                "sum": cycle_up + cycle_down,
+                "min": min(cycle_up, cycle_down)}.get(mode, cycle_up + cycle_down)
         return {
             "time": int(now), "hostname": socket.gethostname(),
             "interface": self.cfg["interface"],
@@ -507,6 +595,9 @@ class Monitor:
             "quota": float(self.cfg["quota_gib"]) * 1024**3,
             "quota_mode": mode, "first_sample": first_sample_row[0],
             "counter_source": "interface_since_boot",
+            "billing_source": "boot_first_then_monthly",
+            "cycle_up": cycle_up, "cycle_down": cycle_down,
+            "cycle_start": cycle_start, "next_reset_at": next_reset,
             "reset_day": self.cfg.get("reset_day", 0),
             "price_usd": self.cfg.get("price_usd"),
             "price_cycle_months": self.cfg.get("price_cycle_months"),

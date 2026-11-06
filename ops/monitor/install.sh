@@ -23,7 +23,7 @@ DATA=/var/lib/familynet-monitor
 BACK=/var/backups/familynet-monitor/$(date -u +%Y%m%dT%H%M%SZ)
 CADDY=/etc/caddy/Caddyfile
 UNIT=/etc/systemd/system/familynet-monitor.service
-BASE=https://raw.githubusercontent.com/z-q-chen/FamilyNet/main/ops/monitor
+BASE=https://raw.githubusercontent.com/z-q-chen/FamilyNet/a9f194a035cb346cde2b88d788ce889b4c0ad236/ops/monitor
 TARGET=127.0.0.1:25775
 CRED=/root/familynet-monitor-credentials.txt
 CUTOVER=0
@@ -88,9 +88,12 @@ if ! command -v conntrack >/dev/null 2>&1 && command -v apt-get >/dev/null 2>&1;
   fi
 fi
 if [ -w /proc/sys/net/netfilter/nf_conntrack_acct ]; then
-  echo 1 > /proc/sys/net/netfilter/nf_conntrack_acct
-  mkdir -p /etc/sysctl.d
-  printf 'net.netfilter.nf_conntrack_acct = 1\n' > /etc/sysctl.d/91-familynet-monitor.conf
+  if echo 1 > /proc/sys/net/netfilter/nf_conntrack_acct; then
+    mkdir -p /etc/sysctl.d
+    printf 'net.netfilter.nf_conntrack_acct = 1\n' > /etc/sysctl.d/91-familynet-monitor.conf
+  else
+    echo "内核未允许连接字节计数，目标访问审计可能不完整。"
+  fi
 fi
 
 cat > "$UNIT" <<'SYSTEMD'
@@ -136,6 +139,7 @@ if [ "$READY" -ne 1 ]; then
 fi
 
 # Change only one known Komari reverse-proxy target. Unknown Caddy layouts abort.
+CUTOVER=1
 python3 - "$CADDY" <<'PY'
 import pathlib, re, sys
 path = pathlib.Path(sys.argv[1])
@@ -148,13 +152,12 @@ s = re.sub(pattern, r'\g<1>25775', s, count=1)
 path.write_text(s)
 PY
 
-CUTOVER=1
 caddy validate --config "$CADDY" --adapter caddyfile
 systemctl reload caddy
 sleep 2
 if ! curl -ksSf --connect-timeout 4 --max-time 8 \
      --resolve '207.57.74.12:9443:127.0.0.1' \
-     'https://207.57.74.12:9443/healthz' >/dev/null; then
+     'https://207.57.74.12:9443/healthz' | grep -q '"status":"ok"'; then
   echo "9443 未通过校验，自动恢复原 Caddy 上游。" >&2
   exit 1
 fi
@@ -187,8 +190,14 @@ else
       rm -rf -- /opt/komari
     fi
   fi
+  for bin in /usr/local/bin/komari /usr/local/bin/komari-agent; do
+    if [ -f "$bin" ]; then
+      cp -p "$bin" "$BACK/$(basename "$bin").binary"
+      rm -f -- "$bin"
+    fi
+  done
   for unit in komari.service komari-agent.service komari-server.service; do
-    test -f "/etc/systemd/system/$unit" && rm -f -- "/etc/systemd/system/$unit"
+    rm -f -- "/etc/systemd/system/$unit"
   done
   systemctl daemon-reload
 fi
@@ -196,7 +205,10 @@ fi
 echo
 echo "FamilyNet Monitor 已启用"
 echo "网页: https://207.57.74.12:9443"
-echo "凭据: $CRED"
+echo "凭据文件: $CRED"
+if [ -f "$CRED" ]; then
+  cat "$CRED"
+fi
 echo "备份: $BACK"
 echo "服务: systemctl status familynet-monitor --no-pager"
 echo "设置: $ETC/config.json"

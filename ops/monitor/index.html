@@ -274,7 +274,7 @@ footer{text-align:center;margin:26px 0 0;color:#9aa7b6;font-size:11px}
 <script>
 (function(){
 "use strict";
-var page="home",hours=24,stampPing=0,stampAudit=0,busy=false,loaded=false,auditAuth="",uptimeAnchor=null;
+var page="home",hours=24,stampPing=0,stampAudit=0,busy=false,loaded=false,auditAuth="",uptimeAnchor=null,auditHistory=[],selectedRange=null,rankRequest=0;
 function el(id){return document.getElementById(id)}
 function text(id,value){var e=el(id);if(e)e.textContent=value}
 function fmt(n){if(n===null||n===undefined||!Number.isFinite(Number(n)))return "—";var v=Math.abs(Number(n)),a=["B","KB","MB","GB","TB"];var i=0;while(v>=1024&&i<a.length-1){v/=1024;i++}return (Number(n)<0?"-":"")+v.toFixed(2)+" "+a[i]}
@@ -287,7 +287,7 @@ function days(sec){var n=Math.max(0,Math.floor(sec||0));return Math.floor(n/8640
 function escape(s){return String(s===undefined||s===null?"":s).replace(/[&<>"']/g,function(x){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[x]})}
 function authHeader(password){var bytes=new TextEncoder().encode("admin:"+password),v="";bytes.forEach(function(b){v+=String.fromCharCode(b)});return "Basic "+btoa(v)}
 async function api(url,isPrivate){var opts={cache:"no-store",credentials:"same-origin"};if(isPrivate&&auditAuth)opts.headers={Authorization:auditAuth};var r=await fetch(url,opts);if(r.status===401){var err=new Error("unauthorized");err.authFailure=true;throw err}if(!r.ok)throw new Error(String(r.status));return r.json()}
-function showAuditGate(){auditAuth="";stampAudit=0;el("auditGate").hidden=false;el("auditContent").hidden=true;el("auditPassword").value="";text("authError","")}
+function showAuditGate(){auditAuth="";stampAudit=0;selectedRange=null;rankRequest++;el("auditGate").hidden=false;el("auditContent").hidden=true;el("auditPassword").value="";text("authError","")}
 async function unlockAudit(password){auditAuth=authHeader(password);try{await api("/api/state?audit=auth",true);el("auditGate").hidden=true;el("auditContent").hidden=false;el("auditPassword").value="";text("authError","");stampAudit=0;refresh()}catch(e){auditAuth="";el("auditPassword").value="";text("authError",e.authFailure?"密码错误":"连接验证接口失败，请检查网络")}}
 function setActive(status){el("dot").classList.toggle("off",!status);text("activity",status?"已连接":"连接异常")}
 function renderState(s){
@@ -380,29 +380,103 @@ function renderPings(data){
   });
   el("pinggrid").innerHTML=out;
 }
+function historyStep(){return hours<=24?300:hours<=336?3600:86400}
 function renderChart(data){
-  var w=900,h=200,pad=20,max=1;
-  data.forEach(function(a){max=Math.max(max,a.up,a.down)});
-  function points(key){return data.map(function(a,i){var x=pad+(w-pad*2)*i/Math.max(1,data.length-1),y=h-pad-(h-pad*2)*a[key]/max;return x.toFixed(2)+","+y.toFixed(2)}).join(" ")}
-  var guide='<line x1="20" y1="60" x2="880" y2="60" stroke="rgba(255,255,255,.09)"/><line x1="20" y1="110" x2="880" y2="110" stroke="rgba(255,255,255,.09)"/><line x1="20" y1="160" x2="880" y2="160" stroke="rgba(255,255,255,.09)"/>';
-  var svg='<svg viewBox="0 0 900 200" preserveAspectRatio="none" aria-label="网络流量曲线">'+guide;
-  if(data.length>1){svg+='<polyline fill="none" stroke="#d5a43e" stroke-width="2.5" points="'+points("up")+'"/><polyline fill="none" stroke="#59a6df" stroke-width="2.5" points="'+points("down")+'"/>'}
+  auditHistory=data;
+  var w=900,h=190,left=24,right=16,bottom=20,top=12;
+  var max=1;
+  data.forEach(function(x){max=Math.max(max,Number(x.up)||0,Number(x.down)||0)});
+  function posX(i){return left+(w-left-right)*i/Math.max(1,data.length-1)}
+  function coords(k){return data.map(function(x,i){return posX(i).toFixed(2)+","+(h-bottom-(h-bottom-top)*(Number(x[k])||0)/max).toFixed(2)}).join(" ")}
+  var guide=[.25,.5,.75].map(function(p){
+    var y=top+(h-bottom-top)*p;
+    return '<line x1="'+left+'" y1="'+y+'" x2="'+(w-right)+'" y2="'+y+'" stroke="#edf0f4"/>';
+  }).join("");
+  var svg='<svg viewBox="0 0 900 190" preserveAspectRatio="none" role="img" aria-label="点击时间点查看流量排行">'+guide;
+  if(data.length){
+    svg+='<polyline fill="none" stroke="#d2a02e" stroke-width="2.4" stroke-linejoin="round" points="'+coords("up")+'"/>';
+    svg+='<polyline fill="none" stroke="#5a9fd5" stroke-width="2.4" stroke-linejoin="round" points="'+coords("down")+'"/>';
+    var idx=data.findIndex(function(x){return selectedRange&&x.ts===selectedRange.start});
+    if(idx>=0){
+      var x=posX(idx);
+      svg+='<line x1="'+x+'" x2="'+x+'" y1="8" y2="'+(h-bottom)+'" stroke="#5886ae" stroke-width="1.5" stroke-dasharray="4 4"/>';
+      svg+='<circle cx="'+x+'" cy="'+(h-bottom-(h-bottom-top)*data[idx].down/max)+'" r="5" fill="#5a9fd5" stroke="#fff" stroke-width="2"/>';
+    }
+  }
   svg+='</svg>';
-  var note=data.length?"最大区间："+fmt(max)+" · "+time(data[0].ts)+" — "+time(data[data.length-1].ts):"该时段尚无流量记录";
-  el("trafficChart").innerHTML=svg+'<div class="subtitle" style="padding:2px 8px 7px">'+escape(note)+'</div>'
-}
-function renderAudit(hist,fl){
-  var up=0,down=0;
-  hist.forEach(function(x){up+=x.up;down+=x.down});
-  text("auditUp",fmt(up));text("auditDown",fmt(down));text("auditTotal",fmt(up+down));
-  renderChart(hist);
-  var out="";
-  (fl.rows||[]).slice(0,100).forEach(function(x){
-    var src=x.src+(x.sport?":"+x.sport:""),dst=x.dst+(x.dport?":"+x.dport:"");
-    out+='<tr title="'+escape(time(x.start)+" — "+time(x.end)+" · "+x.protocol)+'"><td>'+escape(src)+'</td><td>'+escape(dst)+'</td><td class="num">'+fmt(x.up)+'</td><td class="num">'+fmt(x.down)+'</td></tr>';
+  el("trafficChart").innerHTML=svg;
+  var chart=el("trafficChart").querySelector("svg");
+  chart.addEventListener("click",function(ev){
+    if(!data.length)return;
+    var bounds=chart.getBoundingClientRect();
+    var offset=(ev.clientX-bounds.left)/Math.max(1,bounds.width);
+    var idx=Math.round(((offset*w)-left)/(w-left-right)*Math.max(1,data.length-1));
+    idx=Math.min(data.length-1,Math.max(0,idx));
+    selectBucket(data[idx].ts,true);
   });
-  if(!out)out='<tr><td colspan="4" class="empty">'+(fl.sampling==="unavailable"?"连接计数不可用":"暂无可用的连接计数")+'</td></tr>';
-  el("flowRows").innerHTML=out;
+}
+function renderRank(result){
+  var source=result.source||"unknown";
+  var status={"conntrack":"连接追踪","tcp-info":"TCP统计","no-byte-counters":"无可用字节计数","no-local-ip":"网卡地址不可用","starting":"采集中"}[source]||source;
+  text("captureStatus",status);
+  text("rankSummary","识别连接流量 "+fmt(result.captured||0)+" · "+(result.observed_connections||0)+" 个活动连接");
+  var items=result.services||[];
+  var max=items.length?items[0].total||1:1;
+  var out="";
+  items.slice(0,18).forEach(function(x,i){
+    var conf=x.confidence==="未知"?"":' · '+x.confidence;
+    out+='<div class="rankitem">'+
+      '<div class="ranktop"><span class="ranktitle">'+(i+1)+'. '+escape(x.name)+'</span><span class="rankamount">'+fmt(x.total)+'</span></div>'+
+      '<div class="rankmeta"><span>↑ '+fmt(x.up)+' · ↓ '+fmt(x.down)+escape(conf)+'</span><span>'+Number(x.share||0).toFixed(1)+'%</span></div>'+
+      '<div class="rankbar"><i style="width:'+Math.max(0,Math.min(100,x.total/max*100)).toFixed(1)+'%"></i></div></div>';
+  });
+  if(!out)out='<div class="empty">该时段尚无可归属的连接流量'+(source==="no-byte-counters"?" · 系统未提供连接字节计数":"")+'</div>';
+  el("serviceRows").innerHTML=out;
+  var connections=result.connections||[],rows="";
+  connections.slice(0,50).forEach(function(x){
+    rows+='<tr title="'+escape((x.hostname||x.ip)+" · "+x.proto)+'">'+
+      '<td>'+escape(x.ip)+':'+escape(x.port)+'<span class="sub">'+escape(x.proto)+'</span></td>'+
+      '<td>'+escape(x.name)+'<span class="sub">'+escape(x.confidence==="未知"?"未识别":x.confidence)+'</span></td>'+
+      '<td class="num">'+fmt(x.total)+'</td></tr>';
+  });
+  if(!rows)rows='<tr><td colspan="3" class="empty">暂无访问记录</td></tr>';
+  el("flowRows").innerHTML=rows;
+}
+async function selectBucket(timestamp,force){
+  if(!auditAuth)return;
+  var step=historyStep();
+  if(!force&&selectedRange&&selectedRange.start===timestamp)return;
+  selectedRange={start:timestamp,end:timestamp+step};
+  text("selectedPeriod",time(timestamp)+" — "+new Date((timestamp+step)*1000).toLocaleTimeString("zh-CN",{hour12:false}));
+  text("rankSummary","统计中…");
+  el("serviceRows").innerHTML='<div class="empty">正在统计</div>';
+  el("flowRows").innerHTML='<tr><td colspan="3" class="empty">正在统计</td></tr>';
+  renderChart(auditHistory);
+  var number=++rankRequest;
+  try{
+    var result=await api("/api/state?audit=rank&start="+timestamp+"&end="+(timestamp+step),true);
+    if(number===rankRequest)renderRank(result);
+  }catch(e){
+    if(number!==rankRequest)return;
+    if(e.authFailure)showAuditGate();
+    else text("rankSummary","连接流量查询失败");
+  }
+}
+function renderAudit(hist){
+  var up=0,down=0;
+  hist.forEach(function(x){up+=Number(x.up)||0;down+=Number(x.down)||0});
+  text("auditUp",fmt(up));text("auditDown",fmt(down));text("auditTotal",fmt(up+down));
+  if(!selectedRange&&!hist.length){
+    text("selectedPeriod","流量排行");
+    text("rankSummary","暂无趋势数据");
+    el("serviceRows").innerHTML='<div class="empty">暂无记录</div>';
+    el("flowRows").innerHTML='<tr><td colspan="3" class="empty">暂无记录</td></tr>';
+  }
+  renderChart(hist);
+  if(hist.length){
+    var chosen=selectedRange&&hist.some(function(x){return x.ts===selectedRange.start});
+    if(!chosen)selectBucket(hist[hist.length-1].ts,true);
+  }
 }
 async function refresh(){
   if(document.hidden||busy)return;
@@ -413,8 +487,8 @@ async function refresh(){
       var p=await api("/api/pings");renderPings(p);stampPing=Date.now();
     }
     if(page==="audit"&&auditAuth&&(Date.now()-stampAudit>15000||!stampAudit)){
-      var all=await Promise.all([api("/api/state?audit=history&hours="+hours,true),api("/api/state?audit=flows&hours="+hours,true)]);
-      renderAudit(all[0],all[1]);stampAudit=Date.now();
+      var hist=await api("/api/state?audit=history&hours="+hours,true);
+      renderAudit(hist);stampAudit=Date.now();
     }
   }catch(e){if(e.authFailure){showAuditGate()}else{setActive(false);text("report",loaded?"连接中断 · "+time(Date.now()/1000):"无法连接监控服务")}}
   finally{busy=false}
@@ -428,7 +502,7 @@ document.querySelectorAll("[data-tab]").forEach(function(b){b.addEventListener("
   refresh();
 })});
 document.querySelectorAll("[data-hours]").forEach(function(b){b.addEventListener("click",function(){
-  hours=Number(b.dataset.hours)||24;stampAudit=0;
+  hours=Number(b.dataset.hours)||24;stampAudit=0;selectedRange=null;rankRequest++;
   document.querySelectorAll("[data-hours]").forEach(function(x){x.classList.toggle("active",x===b)});
   refresh()
 })});

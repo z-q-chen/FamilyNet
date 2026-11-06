@@ -348,6 +348,33 @@ def komari_rpc(method, params=None):
     return obj.get("result")
 
 
+def agent_month_reset_day():
+    for item in Path("/proc").iterdir():
+        if not item.name.isdecimal():
+            continue
+        try:
+            args = [x.decode(errors="replace") for x in
+                    (item / "cmdline").read_bytes().split(b"\x00") if x]
+        except (OSError, PermissionError):
+            continue
+        if not args or "komari-agent" not in Path(args[0]).name:
+            continue
+        for i, arg in enumerate(args):
+            raw = None
+            if arg == "--month-rotate" and i + 1 < len(args):
+                raw = args[i + 1]
+            elif arg.startswith("--month-rotate="):
+                raw = arg.split("=", 1)[1]
+            if raw is not None:
+                try:
+                    value = int(raw)
+                    if 1 <= value <= 31:
+                        return value
+                except ValueError:
+                    pass
+    return 0
+
+
 def migrate_komari(app):
     """Carry forward probe traffic and existing 24h ping history once.
 
@@ -384,6 +411,10 @@ def migrate_komari(app):
     cfg["baseline_up"] = base_up
     cfg["baseline_down"] = base_down
     cfg["baseline_source"] = source
+    if not int(cfg.get("reset_day") or 0):
+        rotate = agent_month_reset_day()
+        if rotate:
+            cfg["reset_day"] = rotate
     # Atomically persist before disabling the old probe.
     tmp = CONFIG.with_suffix(".tmp")
     tmp.write_text(json.dumps(cfg, ensure_ascii=False, indent=2) + "\n")

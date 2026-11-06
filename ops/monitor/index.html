@@ -229,7 +229,7 @@ function renderState(s){
   segmented("cpuCells",s.cpu||0,"cpu");
   segmented("memCells",pct(s.memory_used,s.memory_total),"mem");
   segmented("diskCells",pct(s.disk_used,s.disk_total),"disk");
-  segmented("loadCells",s.cpu_cores?pct((s.load||[0])[0],s.cpu_cores)*100:0,"load");
+  segmented("loadCells",s.cpu_cores?pct((s.load||[0])[0],s.cpu_cores):0,"load");
   text("netUp",fmt(s.txps)+"/s");
   text("netDown",fmt(s.rxps)+"/s");
   dots("upDots",s.txps);dots("downDots",s.rxps);

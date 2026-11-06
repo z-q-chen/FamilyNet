@@ -6,203 +6,191 @@
 <meta name="color-scheme" content="dark">
 <title>洛杉矶 VPS 监控 · FamilyNet</title>
 <style>
-:root{
-  --bg:#0a0e13;--surface:#10161e;--surface-hi:#141b25;
-  --fg:#eef3f8;--muted:#9ca9b8;--faint:#728194;--line:#27313d;
-  --green:#62d7bb;--blue:#89a9ef;--yellow:#e7b961;--red:#e67d85;
-}
-*{box-sizing:border-box}html{min-height:100%;background:var(--bg)}
-body{margin:0;min-height:100vh;background:radial-gradient(ellipse 80% 55% at 100% -14%,rgba(65,86,124,.10),transparent 72%),var(--bg);color:var(--fg);font:14px/1.55 Inter,system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans SC",sans-serif;letter-spacing:.01em}
-button,input{font:inherit;color:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible{outline:2px solid var(--blue);outline-offset:2px}a{color:var(--blue)}
-[hidden]{display:none!important}.shell{max-width:1200px;margin:auto;padding:0 28px 58px}
-header{border-bottom:1px solid #222b36;background:rgba(10,14,19,.96);position:sticky;top:0;z-index:20}
-.head{max-width:1200px;margin:auto;padding:0 28px;min-height:68px;display:flex;gap:20px;justify-content:space-between;align-items:center}
-.brand{display:flex;gap:12px;align-items:center;min-width:0}
-.logo{display:grid;place-items:center;width:37px;height:37px;color:#a1b8f4;background:#1a2534;border:1px solid #334258;border-radius:10px}
-.logo svg{width:20px;height:20px}
-.brand h1{margin:0;font-size:14px;font-weight:720;letter-spacing:.02em;line-height:1.15}
-.brand small{display:block;font-size:11px;color:var(--faint);margin-top:5px;font-variant-numeric:tabular-nums}
-.nav{display:flex;align-items:center;gap:27px;align-self:stretch}
-.nav button{position:relative;border:0;background:none;padding:8px 0;font-size:12px;font-weight:600;letter-spacing:.02em;white-space:nowrap;color:#899bad}
-.nav button.active{color:var(--fg)}.nav button.active:after{position:absolute;content:"";bottom:0;left:0;right:0;height:2px;background:var(--blue)}
-.top{display:flex;align-items:end;justify-content:space-between;gap:12px;margin:32px 0 17px}
-.eyebrow{color:#7793b4;font-size:10px;font-weight:700;letter-spacing:.13em;margin-bottom:7px}
-.h2{font-size:22px;line-height:1.1;letter-spacing:-.025em;font-weight:740;margin:0}
-.live{font-size:11px;color:var(--muted);display:inline-flex;align-items:center;gap:9px}
-.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 0 4px rgba(98,215,187,.10)}
-.dot.off{background:var(--red);box-shadow:0 0 0 4px rgba(230,125,133,.12)}
-.glass{border:1px solid var(--line);background:linear-gradient(145deg,rgba(21,28,38,.78),rgba(14,19,26,.92));border-radius:14px;box-shadow:0 4px 20px rgba(0,0,0,.10)}
-.overview-grid{display:grid;grid-template-columns:1.07fr .93fr;gap:14px}
-.maincard{padding:23px 24px 24px;min-height:244px}
-.cardtitle{display:flex;justify-content:space-between;gap:9px;align-items:flex-start;margin-bottom:24px}
-.cardtitle h2{font-size:19px;font-weight:740;letter-spacing:-.025em;line-height:1.25;margin:0 0 7px}
-.cardtitle .cap{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
-.status{font-size:11px;white-space:nowrap;color:var(--green);display:inline-flex;align-items:center;gap:6px}
-.status:before{content:"";width:5px;height:5px;border-radius:50%;background:currentColor}
-.mini-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:17px;padding-top:10px}
-.metric{min-width:0}.metric+.metric{border-left:1px solid var(--line);padding-left:16px}
-.metricline{display:flex;flex-direction:column;gap:8px;justify-content:space-between;margin-bottom:12px}
-.label{color:var(--muted);font-size:11px}.metric strong{font-size:27px;line-height:1.05;font-weight:710;letter-spacing:-.05em;font-variant-numeric:tabular-nums;white-space:nowrap}
-.track{width:100%;height:4px;background:#283342;border-radius:99px;overflow:hidden}
-.fill{height:100%;width:0;border-radius:99px;background:var(--blue);transition:width .4s ease}
-#memBar{background:var(--green)}#diskBar{background:#c8a87e}
-.networkpanel .cardtitle{margin-bottom:19px}
-.net-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0}
-.netbox{min-width:0;padding:4px 15px 2px 0}.netbox+.netbox{border-left:1px solid var(--line);padding-left:19px}
-.nettitle{color:var(--muted);font-size:12px;display:flex;align-items:center;gap:7px}
-.nettitle svg{color:var(--green)}.down .nettitle svg{color:var(--blue)}
-.netvalue{font-size:26px;letter-spacing:-.055em;line-height:1.15;font-weight:720;margin:17px 0 12px;font-variant-numeric:tabular-nums;white-space:nowrap}
-.nettotal{color:var(--faint);font-size:11px;font-variant-numeric:tabular-nums}.nettotal span{color:#a7b7c9}
-.quota{padding:22px 25px;margin-top:14px}
-.quota-head{display:flex;align-items:end;justify-content:space-between;gap:12px}
-.quota-head h2{font-size:17px;font-weight:740;letter-spacing:-.02em;margin:0}
-.quota-total{text-align:right;display:flex;flex-direction:column;gap:3px}
-.value{font-variant-numeric:tabular-nums;font-weight:675;color:#eaf0f8;font-size:12px}
-.quota-total .value{font-size:18px;letter-spacing:-.02em}
-.quota>.track{height:6px;margin:17px 0 20px}
-#quotaBar{background:linear-gradient(90deg,var(--blue),var(--green))}
-.quotafoot{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0}
-.quotafoot>div{min-width:0}.quotafoot>div+div{border-left:1px solid var(--line);padding-left:21px}
-.footline{display:block;color:var(--faint);font-size:11px;margin-bottom:6px}
-.quotafoot .value{font-size:13px;white-space:nowrap}
-.sectiontitle{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:33px 1px 14px}
-.sectiontitle h2{font-size:17px;line-height:1.2;letter-spacing:-.015em;margin:0;font-weight:740}
-.subtitle{font-size:11px;color:var(--faint)}
-.pinggrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
-.pingcard{border-radius:12px;padding:17px 17px 13px;min-width:0;transition:border-color .16s ease,background .16s ease}
-.pingcard:hover{border-color:#415067;background:#151e2a}
-.pingtop{display:flex;flex-direction:column;gap:12px;align-items:stretch;margin-bottom:9px}
-.pingname{color:#b7c5d5;font-size:12px;font-weight:620}
-.pingvalue{font-size:26px;font-weight:750;line-height:1;letter-spacing:-.035em;font-variant-numeric:tabular-nums;white-space:nowrap}
-.pingvalue small{color:var(--faint);font-size:11px;font-weight:510;letter-spacing:0}
-.pingtarget{font-size:10px;color:var(--faint);text-overflow:ellipsis;overflow:hidden;white-space:nowrap;min-width:0}
-.spark{display:grid;grid-template-columns:repeat(48,minmax(0,1fr));gap:2px;align-items:center;min-width:0;height:19px;overflow:hidden;margin-top:15px}
-.spark i{min-width:0;height:12px;background:#344252;border-radius:2px;opacity:.97}
-.spark i.s1{background:#28b78d}.spark i.s2{background:#73d08a}.spark i.s3{background:#d2d05e}.spark i.s4{background:#f0aa56}.spark i.s5{background:#ed727d}.spark i.empty{background:#344252;opacity:.55}
-.pingstamp{margin-top:9px;font-size:10px;color:#6b7d93}
-.auditbar{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
-.range,.smallbutton{border:1px solid var(--line);background:#131b25;color:#9caec1;border-radius:8px;padding:6px 10px;font-size:11px;white-space:nowrap}
-.range.active{border-color:#516788;background:#20314a;color:#e6eeff}
-.range:hover,.smallbutton:hover{border-color:#536278;color:var(--fg)}
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;margin-bottom:14px}
-.stat{padding:19px 22px}.stat strong{display:block;font-weight:710;font-size:26px;letter-spacing:-.04em;margin-top:8px;font-variant-numeric:tabular-nums}
-.auditcard{padding:23px;margin-bottom:14px}.auditcard h3{font-size:14px;font-weight:700;margin:0 0 13px}
-.chartwrap{background:rgba(0,0,0,.13);border:1px solid #202c39;border-radius:10px;padding:8px;overflow:hidden}
-.chartwrap svg{display:block;width:100%;min-height:135px;height:auto}
-.legend{font-size:11px;color:var(--muted);display:flex;gap:17px;align-items:center;margin-top:12px}
-.legend span{display:inline-flex;align-items:center;gap:6px}.legend i{display:inline-block;height:7px;width:13px;border-radius:4px}
-.muted{color:var(--muted)}.empty{font-size:12px;color:var(--faint);padding:12px 4px}
-.flex{display:flex;justify-content:space-between;align-items:center;gap:12px}
-.table-scroll{overflow-x:auto}table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:12px}th{padding:11px 7px;border-bottom:1px solid var(--line);font-size:11px;color:var(--muted);text-align:left;font-weight:510}td{padding:12px 7px;border-bottom:1px solid rgba(255,255,255,.04);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-variant-numeric:tabular-nums}tr:last-child td{border:0}td.num,th.num{text-align:right}
-.auditgate{max-width:440px;margin:55px auto;padding:36px 33px 24px;text-align:center}
-.auditgate .lock{margin:0 auto 17px;border:1px solid #37455b;background:#202d3e;color:var(--blue);width:44px;height:44px;display:grid;place-items:center;border-radius:12px;font-size:20px}
-.auditgate h3{margin:0 0 8px;font-size:19px}.auditgate p{margin:0 0 21px;font-size:12px;color:var(--muted)}
-.authrow{display:flex;gap:8px}
-.authrow input{padding:12px 13px;border:1px solid #3b4a5d;background:#101720;color:var(--fg);border-radius:9px;min-width:0;flex:1}
-.authrow button{padding:10px 17px;white-space:nowrap;color:#0b1320;background:#acc4f4;border:0;border-radius:9px;font-weight:700;font-size:12px}
-.authrow button:hover{background:#c0d2fc}.autherror{color:var(--red)!important;min-height:18px;margin:9px 0 0!important;font-size:11px!important}
-footer{text-align:center;color:#5f7288;font-size:11px;margin:28px 0 0}
-@media(max-width:970px){.overview-grid{grid-template-columns:1fr}.maincard{min-height:unset}.pinggrid{grid-template-columns:repeat(3,minmax(0,1fr))}.metric strong{font-size:30px}}
-@media(max-width:680px){.shell{padding:0 17px 45px}.head{padding:0 17px;min-height:63px}.brand h1{font-size:12px}.brand small{font-size:10px}.nav{gap:16px}.nav button{font-size:11px}.top{margin-top:25px}.h2{font-size:20px}.maincard,.quota{padding:19px}.mini-grid{gap:10px}.metric+.metric{padding-left:10px}.metric strong{font-size:23px}.pinggrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.pingcard{padding:15px 13px 12px}.pingvalue{font-size:23px}.quotafoot{grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 8px}.quotafoot>div+div{padding-left:0;border:0}.quotafoot>div:nth-child(even){border-left:1px solid var(--line);padding-left:16px}.sectiontitle{align-items:flex-start}.sectiontitle .subtitle{max-width:175px;text-align:right}.stat{padding:15px 12px}.stat strong{font-size:17px}.auditcard{padding:17px}.auditbar{gap:3px}}
-@media(max-width:390px){.head{gap:7px}.nav{gap:11px}.brand{gap:8px}.brand small{max-width:122px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.logo{width:32px;height:32px}.mini-grid{gap:6px}.metric strong{font-size:19px}.metric+.metric{padding-left:6px}.netvalue{font-size:21px}.quota-total .value{font-size:15px}}
-@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+:root{color-scheme:light;--bg:#f3f5f8;--paper:#fff;--ink:#273244;--muted:#8691a0;--line:#e8edf2;--blue:#569bdb;--green:#17ae7e;--purple:#9967df;--orange:#ef9344;--gold:#dca632;--red:#df6370;--radius:20px}
+*{box-sizing:border-box}
+html{background:var(--bg);scroll-behavior:smooth}
+body{margin:0;background:var(--bg);font:14px/1.5 system-ui,-apple-system,"Segoe UI","Noto Sans SC",sans-serif;color:var(--ink)}
+button,input{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+[hidden]{display:none!important}
+.page{max-width:1400px;margin:0 auto;padding:22px 25px 52px}
+.topbar{max-width:1400px;margin:0 auto;padding:14px 25px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.brand{display:flex;align-items:center;gap:10px;min-width:0}
+.brandmark{height:37px;width:37px;display:grid;place-items:center;background:#e9f1fb;color:#4276ba;border-radius:11px;font-size:19px}
+.brandname{font-size:16px;font-weight:760;letter-spacing:-.03em;white-space:nowrap}
+.brandhint{font-size:11px;color:var(--muted)}
+.nav{display:flex;gap:8px;background:#e9edf3;padding:5px;border-radius:12px}
+.nav button{background:transparent;border:0;border-radius:9px;color:#758293;font-weight:650;padding:8px 15px;font-size:12px;white-space:nowrap}
+.nav button.active{background:#fff;color:#3676b5;box-shadow:0 1px 5px rgba(40,60,90,.09)}
+.card{background:#fff;border:1px solid #e7eaf0;border-radius:var(--radius);box-shadow:0 5px 22px rgba(33,54,78,.045)}
+.monitor{padding:25px 30px 22px}
+.titleline,.between{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.identity{display:flex;align-items:center;gap:10px;min-width:0}
+.flag{font-size:24px;line-height:1}
+.identity h1{font-size:23px;line-height:1.2;color:#3179bc;font-weight:780;margin:0;letter-spacing:-.035em}
+.online{display:inline-flex;align-items:center;gap:7px;color:#15865e;font-size:12px;white-space:nowrap;font-weight:650}
+.online .dot{height:7px;width:7px;background:#1ebe86;border-radius:50%}
+.online .dot.off{background:var(--red)}
+.chips{display:flex;gap:7px;flex-wrap:wrap;margin:14px 0 25px}
+.chip{background:#eef0f4;color:#626d7a;font-size:11px;padding:5px 10px;border-radius:9px;font-weight:730}
+.chip.ip{background:#e5f8ed;color:#28a06f}
+.chip.plan{background:#f7ecfc;color:#9254b8}
+.section-label{font-size:11px;color:#8b98a8;font-weight:760;letter-spacing:.06em;margin-bottom:13px}
+.resource-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:15px 26px}
+.resource{min-width:0}
+.res-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.res-head span{font-size:13px;color:#5e6b7c;display:inline-flex;align-items:center;gap:6px}
+.res-head b{font-size:16px;font-weight:770;font-variant-numeric:tabular-nums}
+.res-sub{height:19px;font-size:11px;color:var(--muted);margin-top:5px;font-variant-numeric:tabular-nums}
+.segment-track{height:11px;display:grid;grid-template-columns:repeat(20,minmax(0,1fr));gap:3px;margin-top:5px}
+.segment-track i{background:#e9ecf1;border-radius:2px;min-width:0}
+.segment-track i.filled.cpu{background:#76a8e9}.segment-track i.filled.mem{background:#9771dc}.segment-track i.filled.disk{background:#ec9247}.segment-track i.filled.load{background:#4cbcaf}
+.hr{border:0;border-top:1px solid var(--line);margin:23px 0}
+.speedgrid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.speedcard{min-width:0}
+.speed-label{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;color:#d09220}
+.speed-label b{font-size:24px;margin-left:auto;letter-spacing:-.03em;color:#dda72e;font-variant-numeric:tabular-nums;white-space:nowrap}
+.speed-label .arrow{font-size:20px;font-weight:600;color:#398dce}
+.speedcard:last-child .arrow{color:#24a77b}
+.activity-dots{display:grid;grid-template-columns:repeat(26,minmax(0,1fr));gap:5px;margin:13px 0 16px}
+.activity-dots i{height:5px;border-radius:50%;background:#e8d8ae;min-width:0}
+.activity-dots i.lit{background:#d9a127}
+.traffic-row{display:flex;align-items:center;gap:9px;justify-content:space-between}
+.traffic-row span{font-size:13px;color:#67788b}
+.traffic-row b{font-size:14px;font-weight:730;color:#344353;font-variant-numeric:tabular-nums}
+.traffic-row .globe{font-size:17px}
+.quota-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.quota-head .maintext{font-size:14px;font-weight:750;color:#566372}
+.quota-head .remain{font-size:14px;color:var(--green);font-weight:760}
+.quota-head .spend{font-size:13px;color:#5b6879;font-variant-numeric:tabular-nums}
+.quota-progress{height:12px;background:#e9ecef;border-radius:4px;overflow:hidden;margin:13px 0 11px}
+.quota-progress .fill{height:100%;width:0;background:linear-gradient(90deg,#0aaf8b,#64c895);border-radius:4px;transition:width .3s}
+.quota-meta{font-size:11px;color:#8b96a4;display:flex;justify-content:space-between;gap:12px}
+.bottom-meta{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-top:17px}
+.bottom-meta .item{min-width:0;border-right:1px solid var(--line);padding-right:9px}
+.bottom-meta .item:last-child{border:0}
+.bottom-meta .k{color:#8a96a4;font-size:11px;display:block;margin-bottom:6px}
+.bottom-meta .v{font-size:15px;font-weight:730;font-variant-numeric:tabular-nums}
+.ping-titlebar{margin:30px 2px 14px;display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.ping-titlebar h2{font-size:20px;font-weight:760;margin:0 0 3px;letter-spacing:-.02em}
+.hint,.subtitle{font-size:11px;color:#8695a5}
+.key{display:flex;align-items:center;gap:12px;flex-wrap:wrap;color:#7e8b99;font-size:11px}
+.key span{display:inline-flex;align-items:center;gap:5px}
+.key i{display:inline-block;width:9px;height:9px;background:#e4aa31;border-radius:2px}
+.key i.loss{background:#1eae85}.key i.missing{background:#e7eaf0}
+.region-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start}
+.region{padding:22px 23px;min-width:0}
+.region-title{display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line);padding-bottom:14px}
+.region-title h3{font-size:18px;margin:0;font-weight:780}
+.region-title small{font-size:11px;color:var(--muted)}
+.ipheading{display:flex;align-items:center;justify-content:space-between;margin:15px 0 6px}
+.ipheading b{display:inline-block;color:#679bcb;background:#ecf4fd;padding:3px 9px;border-radius:7px;font-size:11px}
+.ipheading small{font-size:10px;color:#96a1ad}
+.probe{padding:11px 0 13px;border-bottom:1px solid #eef0f3}
+.probe:last-child{border-bottom:0;padding-bottom:2px}
+.probe-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:8px}
+.probe-name{font-size:13px;font-weight:700;color:#5a6979}
+.probe-values{display:flex;align-items:baseline;gap:14px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.probe-values strong{color:#cf9b28;font-size:13px;font-weight:760}
+.probe-values strong small{font-size:10px;font-weight:600;color:#a0a7b1}
+.probe-values .lossvalue{color:#24a77b}
+.probe-gridline{display:grid;grid-template-columns:27px minmax(0,1fr);align-items:center;gap:8px;margin:4px 0}
+.probe-gridline .gr-label{font-size:10px;white-space:nowrap;color:#9da7b1}
+.cells{display:grid;grid-template-columns:repeat(48,minmax(0,1fr));gap:2px;height:10px;min-width:0}
+.cells i{border-radius:2px;min-width:0;height:10px;background:#eceff3}
+.cells .l1{background:#89d6ad}.cells .l2{background:#e2bd46}.cells .l3{background:#efab4e}.cells .l4{background:#e87865}.cells .l5{background:#dc6470}
+.cells .p0{background:#1eb485}.cells .p1{background:#a1cf67}.cells .p2{background:#e5bc46}.cells .p3{background:#ec8b54}.cells .p4{background:#e05f6a}
+.cells .unknown{background:#e9edf1}
+.ping-footer{padding-top:16px;font-size:11px;color:#8e9ba7;text-align:center}
+.audit-top{margin:4px 0 17px}.audit-top h2{font-size:21px;margin:0;font-weight:770}
+.auditbar{display:flex;gap:5px;flex-wrap:wrap}
+.range,.tinybutton{background:#f2f4f7;color:#718092;border:1px solid #e5e9ef;border-radius:8px;padding:6px 10px;font-size:11px}
+.range.active{background:#e6f2fe;border-color:#b5d6f3;color:#387fb6}
+.auditstats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:15px}
+.stat{padding:20px}.stat b{display:block;font-size:22px;font-variant-numeric:tabular-nums;margin-top:7px}
+.auditcard{padding:22px;margin-bottom:15px}.auditcard h3{font-size:15px;margin:0 0 12px}
+.chartwrap{background:#f9fbfd;border:1px solid #edf0f4;border-radius:10px;padding:8px;min-height:170px}
+.chartwrap svg{display:block;width:100%;height:auto}
+.legend{display:flex;gap:14px;margin-top:10px;font-size:11px;color:#84919d}
+.legend span{display:inline-flex;gap:6px;align-items:center}.legend i{width:11px;height:6px;display:inline-block;border-radius:4px}
+.table-scroll{overflow-x:auto}table{border-collapse:collapse;width:100%;table-layout:fixed;font-size:12px}th,td{padding:11px 7px;border-bottom:1px solid #eef0f3;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}th{color:#84909b;font-weight:650}td.num,th.num{text-align:right}
+.auditgate{max-width:430px;margin:36px auto;padding:33px 28px;text-align:center}
+.auditgate .lock{width:44px;height:44px;margin:0 auto 15px;display:grid;place-items:center;background:#e7f1fb;border-radius:12px;color:#5790c3}
+.auditgate h3{font-size:19px;margin:0 0 8px}.auditgate p{font-size:12px;color:var(--muted);margin:0 0 20px}
+.authrow{display:flex;gap:8px}.authrow input{padding:10px 12px;flex:1;min-width:0;border:1px solid #dbe2ea;border-radius:9px}.authrow button{padding:10px 16px;border-radius:9px;border:0;background:#428dd0;color:white;font-size:12px;font-weight:730}
+.autherror{color:var(--red)!important;margin:9px 0 0!important;min-height:16px}
+.flex{display:flex;justify-content:space-between;gap:12px;align-items:center}
+.empty{padding:15px 4px;color:var(--muted);font-size:12px}
+footer{text-align:center;margin:26px 0 0;color:#9aa7b6;font-size:11px}
+@media(max-width:960px){.resource-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.region-grid{grid-template-columns:1fr}.monitor{padding:22px}.region{padding:19px 18px}.bottom-meta{grid-template-columns:repeat(2,1fr)}.bottom-meta .item:nth-child(2){border:0}}
+@media(max-width:560px){.topbar{padding:11px 14px}.brandname{font-size:13px}.brandhint{font-size:10px}.brandmark{width:30px;height:30px}.nav{gap:2px;padding:4px}.nav button{padding:7px 9px;font-size:11px}.page{padding:10px 10px 35px}.monitor{padding:20px 16px}.identity h1{font-size:17px}.flag{font-size:18px}.online{font-size:10px}.chips{margin:12px 0 23px}.resource-grid{gap:17px 14px}.res-head b{font-size:14px}.speedgrid{gap:12px}.speed-label{font-size:12px}.speed-label b{font-size:18px}.activity-dots{gap:3px}.traffic-row span,.traffic-row b{font-size:11px}.bottom-meta{gap:12px}.bottom-meta .v{font-size:12px}.region{padding:18px 11px}.probe-gridline{gap:4px;grid-template-columns:24px minmax(0,1fr)}.cells{gap:1px;height:9px}.cells i{height:9px;border-radius:1px}.probe-values{gap:8px}.probe-values strong{font-size:12px}.probe-name{font-size:12px}.ping-titlebar h2{font-size:18px}.key{gap:8px}.auditcard{padding:16px}.auditgate{padding:26px 17px}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+
 </style>
 </head>
 <body>
-<header>
-  <div class="head">
-    <div class="brand">
-      <div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="M8 8h8M8 12h8M8 16h3"/><circle cx="16" cy="16" r="1" fill="currentColor" stroke="none"/></svg></div>
-      <div><h1>洛杉矶 VPS 监控</h1><small id="report">尚未获取状态</small></div>
-    </div>
-    <div class="nav" role="tablist" aria-label="页面">
-      <button type="button" data-tab="home" class="active" aria-selected="true">VPS 监控</button>
-      <button type="button" data-tab="audit" aria-selected="false">流量分析</button>
-    </div>
-  </div>
+<header class="topbar">
+ <div class="brand"><span class="brandmark">▣</span><div><div class="brandname">FamilyNet Monitor</div><div class="brandhint" id="report">正在连接</div></div></div>
+ <nav class="nav" role="tablist" aria-label="监控页面"><button data-tab="home" class="active" type="button" aria-selected="true">VPS 监控</button><button data-tab="audit" type="button" aria-selected="false">流量分析</button></nav>
 </header>
-<div class="shell">
+<div class="page">
 <section id="home">
-  <div class="top"><div><div class="eyebrow">FAMILYNET / DASHBOARD</div><h2 class="h2">服务器概览</h2></div><span class="live"><i class="dot" id="dot"></i><span id="activity">连接中</span></span></div>
-  <div class="overview-grid">
-    <div class="glass maincard">
-      <div class="cardtitle">
-        <div><div class="eyebrow">SERVER · SYSTEM</div><h2 id="serverName">洛杉矶 VPS</h2><div class="cap">在线时间 <span id="uptime">—</span>　 /　 负载 <span id="load">—</span></div></div>
-        <span class="status" id="serverStatus">运行中</span>
-      </div>
-      <div class="mini-grid">
-        <div class="metric"><div class="metricline"><span class="label">处理器</span><strong id="cpu">—</strong></div><div class="track"><div class="fill" id="cpuBar"></div></div></div>
-        <div class="metric"><div class="metricline"><span class="label">内存占用</span><strong id="mem">—</strong></div><div class="track"><div class="fill" id="memBar"></div></div></div>
-        <div class="metric"><div class="metricline"><span class="label">存储使用</span><strong id="disk">—</strong></div><div class="track"><div class="fill" id="diskBar"></div></div></div>
-      </div>
-    </div>
-    <div class="glass maincard networkpanel">
-      <div class="cardtitle">
-        <div><div class="eyebrow">NETWORK · LIVE</div><h2>实时网络</h2><div class="cap">公网网卡收发速率</div></div>
-      </div>
-      <div class="net-grid">
-        <div class="netbox up">
-          <div class="nettitle"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 17 10-10M7 7h10v10"/></svg>上传</div>
-          <div class="netvalue" id="netUp">—</div><div class="nettotal">本周期 <span id="totalUp">—</span></div>
-        </div>
-        <div class="netbox down">
-          <div class="nettitle"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 7v10h10M17 7 7 17"/></svg>下载</div>
-          <div class="netvalue" id="netDown">—</div><div class="nettotal">本周期 <span id="totalDown">—</span></div>
-        </div>
-      </div>
-    </div>
+ <article class="card monitor">
+  <div class="titleline">
+   <div class="identity"><span class="flag">🇺🇸</span><h1 id="serverName">洛杉矶 VPS</h1></div>
+   <span class="online"><i class="dot" id="dot"></i><span id="activity">连接中</span></span>
   </div>
-  <div class="glass quota">
-    <div class="quota-head">
-      <div><div class="eyebrow">SUBSCRIPTION · USAGE</div><h2>流量与订阅</h2></div>
-      <div class="quota-total"><span class="value" id="quotaValue">— / 400.00 GB</span><span class="label" id="quotaHint">当前周期</span></div>
-    </div>
-    <div class="track"><div class="fill" id="quotaBar"></div></div>
-    <div class="quotafoot">
-      <div><span class="footline">套餐价格</span><span class="value" id="price">$11.70 / 季度</span></div>
-      <div><span class="footline">距离到期</span><span class="value" id="expire">未设置</span></div>
-      <div><span class="footline">剩余价值</span><span class="value" id="valueLeft">—</span></div>
-      <div><span class="footline">系统网卡</span><span class="value" id="interface">—</span></div>
-    </div>
+  <div class="chips"><span class="chip">US;VPS</span><span class="chip ip">V4</span><span class="chip ip">V6</span><span class="chip plan">FamilyNet</span></div>
+  <div class="resource-grid">
+   <div class="resource"><div class="res-head"><span>⚙ CPU</span><b id="cpu">—</b></div><div class="res-sub" id="cpuDesc">—</div><div class="segment-track" id="cpuCells"></div></div>
+   <div class="resource"><div class="res-head"><span>▤ 内存</span><b id="mem">—</b></div><div class="res-sub" id="memDesc">—</div><div class="segment-track" id="memCells"></div></div>
+   <div class="resource"><div class="res-head"><span>▣ 磁盘</span><b id="disk">—</b></div><div class="res-sub" id="diskDesc">—</div><div class="segment-track" id="diskCells"></div></div>
+   <div class="resource"><div class="res-head"><span>◷ 负载</span><b id="load">—</b></div><div class="res-sub">1 分钟平均负载</div><div class="segment-track" id="loadCells"></div></div>
   </div>
-  <div class="sectiontitle"><h2>线路监测</h2><span class="subtitle">12 组 TCP 443 · 每 30 分钟 · 最近 24 小时</span></div>
-  <div class="pinggrid" id="pinggrid"><div class="empty">正在加载线路数据</div></div>
+  <hr class="hr">
+  <div class="speedgrid">
+   <div class="speedcard">
+    <div class="speed-label"><span class="arrow">↑</span> 上行 <b id="netUp">—</b></div>
+    <div class="activity-dots" id="upDots"></div>
+    <div class="traffic-row"><span><span class="globe">◎</span> 出站 · 本周期</span><b id="totalUp">—</b></div>
+   </div>
+   <div class="speedcard">
+    <div class="speed-label"><span class="arrow">↓</span> 下行 <b id="netDown">—</b></div>
+    <div class="activity-dots" id="downDots"></div>
+    <div class="traffic-row"><span><span class="globe">◎</span> 入站 · 本周期</span><b id="totalDown">—</b></div>
+   </div>
+  </div>
+  <hr class="hr">
+  <div class="quota-head"><div class="maintext">▤ 剩余流量 <span class="remain" id="quotaRemaining">—</span></div><div class="spend" id="quotaValue">— / 400 GB</div></div>
+  <div class="quota-progress"><div class="fill" id="quotaBar"></div></div>
+  <div class="quota-meta"><span id="quotaHint">本周期</span><span>流量进度</span></div>
+  <hr class="hr">
+  <div class="bottom-meta">
+   <div class="item"><span class="k">在线时间</span><span class="v" id="uptime">—</span></div>
+   <div class="item"><span class="k">距离到期</span><span class="v" id="expire">—</span></div>
+   <div class="item"><span class="k">套餐价格</span><span class="v" id="price">—</span></div>
+   <div class="item"><span class="k">剩余价值 · <span id="interface">—</span></span><span class="v" id="valueLeft">—</span></div>
+  </div>
+ </article>
+ <div class="ping-titlebar">
+  <div><h2>线路质量 · 12 组</h2><div class="hint">最近 24 小时 · 每 30 分钟一格 · 上排延迟 / 下排 TCP 探测失败率</div></div>
+  <div class="key"><span><i></i>延迟</span><span><i class="loss"></i>正常</span><span><i class="missing"></i>无数据</span></div>
+ </div>
+ <div class="region-grid" id="pinggrid"><div class="card region"><div class="empty">正在加载线路检测历史…</div></div></div>
+ <div class="ping-footer">48 格时间位置一一对应；TCP 探测失败率由每轮 5 次连接测试统计，不代表 ICMP 丢包率。</div>
 </section>
 <section id="audit" hidden>
-  <div id="auditGate" class="glass auditgate">
-    <div class="lock" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></div>
-    <h3>流量分析</h3>
-    <p>输入流量审计密码查看历史和访问连接。</p>
-    <form id="auditLoginForm" autocomplete="off">
-      <div class="authrow">
-        <input id="auditPassword" type="password" aria-label="流量审计密码" placeholder="流量审计密码" required autocomplete="off">
-        <button id="auditLoginButton" type="submit">解锁</button>
-      </div>
-      <p id="authError" class="autherror" role="alert"></p>
-    </form>
-  </div>
-  <div id="auditContent" hidden>
-  <div class="top">
-    <h2 class="h2">流量分析</h2>
-    <div class="auditbar" id="auditbar">
-      <button class="range" data-hours="1">1 小时</button>
-      <button class="range active" data-hours="24">24 小时</button>
-      <button class="range" data-hours="168">7 天</button>
-      <button class="range" data-hours="720">30 天</button>
-    </div>
-  </div>
-  <div class="stats">
-    <div class="glass stat"><div class="label">上传</div><strong id="auditUp">—</strong></div>
-    <div class="glass stat"><div class="label">下载</div><strong id="auditDown">—</strong></div>
-    <div class="glass stat"><div class="label">合计</div><strong id="auditTotal">—</strong></div>
-  </div>
-  <div class="flex" style="margin-bottom:12px"><span class="subtitle">访问明细仅限验证后查看</span><button class="smallbutton" type="button" id="auditLogout">锁定流量分析</button></div>
-  <div class="glass auditcard"><h3>流量趋势</h3><div class="chartwrap" id="trafficChart"><div class="empty">正在加载</div></div><div class="legend"><span><i style="background:var(--green)"></i>上传</span><span><i style="background:var(--blue)"></i>下载</span></div></div>
-  <div class="glass auditcard">
-    <div class="flex"><h3>连接流量排行</h3><span class="subtitle">内核连接采样 · 近似值</span></div>
-    <div class="table-scroll"><table><thead><tr><th style="width:36%">来源</th><th style="width:36%">目标</th><th class="num">去向</th><th class="num">回向</th></tr></thead><tbody id="flowRows"><tr><td colspan="4" class="empty">正在加载连接</td></tr></tbody></table></div>
-  </div>
-  </div>
+ <div id="auditGate" class="card auditgate">
+  <div class="lock" aria-hidden="true">🔒</div><h3>流量分析</h3><p>输入密码查看网络访问与历史记录</p>
+  <form id="auditLoginForm" autocomplete="off"><div class="authrow"><input id="auditPassword" type="password" placeholder="流量分析密码" aria-label="流量分析密码" required autocomplete="off"><button type="submit">解锁</button></div><p class="autherror" id="authError" role="alert"></p></form>
+ </div>
+ <div id="auditContent" hidden>
+  <div class="between audit-top"><h2>流量分析</h2><div class="auditbar"><button data-hours="1" class="range" type="button">1 小时</button><button data-hours="24" class="range active" type="button">24 小时</button><button data-hours="168" class="range" type="button">7 天</button><button data-hours="720" class="range" type="button">30 天</button></div></div>
+  <div class="auditstats"><div class="card stat"><span class="subtitle">上传</span><b id="auditUp">—</b></div><div class="card stat"><span class="subtitle">下载</span><b id="auditDown">—</b></div><div class="card stat"><span class="subtitle">合计</span><b id="auditTotal">—</b></div></div>
+  <div class="between" style="margin:10px 0 15px"><span class="subtitle">网络连接采样数据</span><button class="tinybutton" type="button" id="auditLogout">锁定流量分析</button></div>
+  <div class="card auditcard"><h3>流量趋势</h3><div class="chartwrap" id="trafficChart"><div class="empty">正在加载</div></div><div class="legend"><span><i style="background:#d5a43e"></i>上传</span><span><i style="background:#59a6df"></i>下载</span></div></div>
+  <div class="card auditcard"><div class="between"><h3>连接流量排行</h3><span class="subtitle">内核连接采样 · 近似值</span></div><div class="table-scroll"><table><thead><tr><th style="width:35%">来源</th><th style="width:35%">目标</th><th class="num">去向</th><th class="num">回向</th></tr></thead><tbody id="flowRows"><tr><td colspan="4">正在加载</td></tr></tbody></table></div></div>
+ </div>
 </section>
 <footer>FamilyNet Monitor</footer>
 </div>
@@ -215,6 +203,8 @@ function text(id,value){var e=el(id);if(e)e.textContent=value}
 function fmt(n){if(n===null||n===undefined||!Number.isFinite(Number(n)))return "—";var v=Math.abs(Number(n)),a=["B","KB","MB","GB","TB"];var i=0;while(v>=1024&&i<a.length-1){v/=1024;i++}return (Number(n)<0?"-":"")+v.toFixed(2)+" "+a[i]}
 function pct(part,total){return total?Math.max(0,Math.min(100,part/total*100)):0}
 function bar(id,p){el(id).style.width=Math.max(0,Math.min(100,p)).toFixed(2)+"%"}
+function segmented(id,p,type){var n=Math.max(0,Math.min(20,Math.ceil((p||0)/5))),out="";for(var i=0;i<20;i++)out+='<i class="'+(i<n?"filled "+type:"")+'"></i>';el(id).innerHTML=out}
+function dots(id,rate){var n=Math.max(1,Math.min(26,Math.ceil(Math.log2(Math.max(1,rate)/256+1)*3))),out="";for(var i=0;i<26;i++)out+='<i class="'+(i>=26-n?"lit":"")+'"></i>';el(id).innerHTML=out}
 function time(ts){return ts?new Date(ts*1000).toLocaleString("zh-CN",{hour12:false}):"—"}
 function days(sec){var n=Math.max(0,Math.floor(sec||0));return Math.floor(n/86400)+" 天 "+String(Math.floor(n%86400/3600)).padStart(2,"0")+" 时 "+String(Math.floor(n%3600/60)).padStart(2,"0")+" 分 "+String(n%60).padStart(2,"0")+" 秒"}
 function escape(s){return String(s===undefined||s===null?"":s).replace(/[&<>"']/g,function(x){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[x]})}
@@ -224,44 +214,92 @@ function showAuditGate(){auditAuth="";stampAudit=0;el("auditGate").hidden=false;
 async function unlockAudit(password){auditAuth=authHeader(password);try{await api("/api/auth",true);el("auditGate").hidden=true;el("auditContent").hidden=false;el("auditPassword").value="";text("authError","");stampAudit=0;refresh()}catch(e){auditAuth="";el("auditPassword").value="";text("authError",e.authFailure?"密码错误":"验证失败，请重试")}}
 function setActive(status){el("dot").classList.toggle("off",!status);text("activity",status?"已连接":"连接异常")}
 function renderState(s){
-  text("serverName",s.title||s.hostname||"洛杉矶 VPS");text("report","最近采集 "+time(s.time));
-  document.title=(s.title||"洛杉矶 VPS 监控")+" · FamilyNet";
+  text("serverName",s.title||s.hostname||"洛杉矶 VPS");
+  text("report","最近更新 "+time(s.time));
+  document.title=(s.title||"洛杉矶 VPS")+" · FamilyNet";
   uptimeAnchor={seconds:Number(s.uptime)||0,at:performance.now()};
-  text("uptime",days(s.uptime));text("load",(s.load||[]).join(" / "));
-  text("cpu",s.cpu===null?"—":s.cpu.toFixed(2)+"%");
+  text("uptime",days(s.uptime));
+  text("cpu",s.cpu===null?"—":Number(s.cpu).toFixed(2)+"%");
   text("mem",pct(s.memory_used,s.memory_total).toFixed(2)+"%");
   text("disk",pct(s.disk_used,s.disk_total).toFixed(2)+"%");
-  bar("cpuBar",s.cpu||0);bar("memBar",pct(s.memory_used,s.memory_total));bar("diskBar",pct(s.disk_used,s.disk_total));
-  el("mem").title=fmt(s.memory_used)+" / "+fmt(s.memory_total);
-  el("disk").title=fmt(s.disk_used)+" / "+fmt(s.disk_total);
-  text("netUp",fmt(s.txps)+"/s");text("netDown",fmt(s.rxps)+"/s");
+  text("load",(s.load&&s.load.length?Number(s.load[0]).toFixed(2):"—"));
+  text("cpuDesc",(s.cpu_cores||"—")+" 核");
+  text("memDesc",fmt(s.memory_used)+" / "+fmt(s.memory_total));
+  text("diskDesc",fmt(s.disk_used)+" / "+fmt(s.disk_total));
+  segmented("cpuCells",s.cpu||0,"cpu");
+  segmented("memCells",pct(s.memory_used,s.memory_total),"mem");
+  segmented("diskCells",pct(s.disk_used,s.disk_total),"disk");
+  segmented("loadCells",s.cpu_cores?pct((s.load||[0])[0],s.cpu_cores)*100:0,"load");
+  text("netUp",fmt(s.txps)+"/s");
+  text("netDown",fmt(s.rxps)+"/s");
+  dots("upDots",s.txps);dots("downDots",s.rxps);
   text("totalUp",fmt(s.cycle_up));text("totalDown",fmt(s.cycle_down));
-  text("quotaValue",fmt(s.used)+" / "+fmt(s.quota));bar("quotaBar",pct(s.used,s.quota));
-  text("quotaHint",s.next_reset_at?"下次重置 "+new Date(s.next_reset_at*1000).toLocaleDateString("zh-CN",{year:"numeric",month:"2-digit",day:"2-digit"}):"本周期");
+  text("quotaValue",fmt(s.used)+" / "+fmt(s.quota));
+  text("quotaRemaining",fmt(Math.max(0,s.quota-s.used)));
+  bar("quotaBar",pct(s.used,s.quota));
+  text("quotaHint",s.next_reset_at?"下次重置 "+new Date(s.next_reset_at*1000).toLocaleDateString("zh-CN"):"本周期");
   text("price","$"+Number(s.price_usd||0).toFixed(2)+" / "+(s.price_cycle_months===3?"季度":s.price_cycle_months+" 个月"));
   var exp=s.expires_at,dd=exp?Math.ceil((Date.parse(exp)-Date.now())/86400000):null;
   text("expire",dd===null||!Number.isFinite(dd)?"未设置":(dd>=0?dd+" 天":"已到期"));
   text("valueLeft",dd===null||!Number.isFinite(dd)?"—":"$"+Math.max(0,Number(s.price_usd||0)*Math.max(0,dd)/Math.max(30,Number(s.price_cycle_months||3)*30)).toFixed(2));
-  text("interface",s.interface||"—");setActive(true);loaded=true
+  text("interface",s.interface||"—");setActive(true);loaded=true;
 }
-function level(lat,ok){return !ok?"bad":lat>250?"bad":lat>130?"warn":""}
+
 function renderPings(data){
-  var out="";
-  data.forEach(function(t){
+  var byID={};data.forEach(function(t){byID[String(t.id)]=t});
+  var groups=[
+    {name:"江苏",id:"jiangsu",v4:[39,27,28],v6:[40,30,31]},
+    {name:"河北",id:"hebei",v4:[38,32,33],v6:[34,35,36]}
+  ],carriers=["电信","联通","移动"];
+  var epoch=Math.floor(Date.now()/1800000);
+  function classifyDelay(v,ok){
+    if(!ok)return "l5";
+    if(v<95)return "l1";
+    if(v<185)return "l2";
+    if(v<240)return "l3";
+    if(v<320)return "l4";
+    return "l5";
+  }
+  function classifyLoss(p){
+    if(p<=0)return "p0";
+    if(p<=20)return "p1";
+    if(p<=40)return "p2";
+    if(p<=60)return "p3";
+    return "p4";
+  }
+  function probeHTML(t,name){
+    if(!t)return '<div class="probe"><div class="probe-head"><span class="probe-name">'+name+'</span><span class="hint">无任务</span></div></div>';
     var h=t.history||[],last=h.length?h[h.length-1]:null;
-    var good=last&&last.ok,lat=good?Number(last.latency):null;
-    var val=last?(good?lat.toFixed(2):"超时"):"—";
-    var epoch=Math.floor(Date.now()/1800000), slots=new Array(48).fill(null);
-    h.forEach(function(q){
-      var idx=Math.floor(q.ts/1800)-epoch+47;
-      if(idx>=0&&idx<48)slots[idx]=q;
+    var loss=last?(last.loss==null?(last.ok?0:100):Number(last.loss)):null;
+    var lat=last&&last.ok&&Number.isFinite(Number(last.latency))?Number(last.latency):null;
+    var latencyText=last?(lat===null?"超时":lat.toFixed(1)+" ms"):"—";
+    var lossText=loss===null?"—":loss.toFixed(1)+"%";
+    var slots=new Array(48).fill(null);
+    h.forEach(function(q){var idx=Math.floor(q.ts/1800)-epoch+47;if(idx>=0&&idx<48)slots[idx]=q});
+    var upper="",lower="";
+    slots.forEach(function(q,i){
+      var slotTime=time((epoch-47+i)*1800);
+      if(!q){upper+='<i class="unknown" title="'+escape(slotTime)+' · 无数据"></i>';lower+='<i class="unknown" title="'+escape(slotTime)+' · 无数据"></i>';return}
+      var lp=q.loss==null?(q.ok?0:100):Math.max(0,Math.min(100,Number(q.loss)));
+      var delayTitle=slotTime+" · "+(q.ok?q.latency+" ms":"超时");
+      upper+='<i class="'+classifyDelay(q.latency,q.ok)+'" title="'+escape(delayTitle)+'"></i>';
+      lower+='<i class="'+classifyLoss(lp)+'" title="'+escape(slotTime+" · TCP失败率 "+lp.toFixed(1)+"%")+'"></i>';
     });
-    var bars=slots.map(function(q,i){
-      if(!q)return '<i class="empty" title="'+escape(time((epoch-47+i)*1800))+' · 无数据"></i>';
-      var quality=!q.ok?"s5":q.latency<80?"s1":q.latency<130?"s2":q.latency<200?"s3":q.latency<300?"s4":"s5";
-      return '<i class="'+quality+'" title="'+escape(time(q.ts))+' · '+(q.ok?q.latency+" ms":"超时")+'"></i>';
-    }).join("");
-    out+='<div class="glass pingcard"><div class="pingtop"><span class="pingname">'+escape(t.name)+'</span><span class="pingvalue" style="color:'+(good?"var(--green)":last?"var(--red)":"var(--muted)")+'">'+val+(good?'<small> ms</small>':"")+'</span></div><div class="pingtarget" title="'+escape(t.target)+'">'+escape(t.target)+'</div><div class="spark">'+bars+'</div><div class="pingstamp">最近测试 '+time(last&&last.ts)+'</div></div>';
+    return '<div class="probe" title="'+escape(t.target)+'">'+
+      '<div class="probe-head"><span class="probe-name">'+escape(name)+'</span>'+
+      '<span class="probe-values"><strong>'+latencyText+'</strong><strong class="lossvalue" style="'+(loss>0?'color:#dc6771':'')+'">'+lossText+'<small> 失败</small></strong></span></div>'+
+      '<div class="probe-gridline"><span class="gr-label">延迟</span><div class="cells">'+upper+'</div></div>'+
+      '<div class="probe-gridline"><span class="gr-label">丢包</span><div class="cells">'+lower+'</div></div>'+
+    '</div>';
+  }
+  var out="";
+  groups.forEach(function(g){
+    out+='<article class="card region"><div class="region-title"><h3>'+g.name+'</h3><small>48 个半小时刻度</small></div>';
+    [["IPv4",g.v4],["IPv6",g.v6]].forEach(function(part){
+      out+='<div class="ipheading"><b>'+part[0]+'</b><small>电信 → 联通 → 移动</small></div>';
+      part[1].forEach(function(id,index){out+=probeHTML(byID[String(id)],carriers[index])});
+    });
+    out+='</article>';
   });
   el("pinggrid").innerHTML=out;
 }
@@ -271,7 +309,7 @@ function renderChart(data){
   function points(key){return data.map(function(a,i){var x=pad+(w-pad*2)*i/Math.max(1,data.length-1),y=h-pad-(h-pad*2)*a[key]/max;return x.toFixed(2)+","+y.toFixed(2)}).join(" ")}
   var guide='<line x1="20" y1="60" x2="880" y2="60" stroke="rgba(255,255,255,.09)"/><line x1="20" y1="110" x2="880" y2="110" stroke="rgba(255,255,255,.09)"/><line x1="20" y1="160" x2="880" y2="160" stroke="rgba(255,255,255,.09)"/>';
   var svg='<svg viewBox="0 0 900 200" preserveAspectRatio="none" aria-label="网络流量曲线">'+guide;
-  if(data.length>1){svg+='<polyline fill="none" stroke="#40d2a4" stroke-width="2.5" points="'+points("up")+'"/><polyline fill="none" stroke="#82b7ff" stroke-width="2.5" points="'+points("down")+'"/>'}
+  if(data.length>1){svg+='<polyline fill="none" stroke="#d5a43e" stroke-width="2.5" points="'+points("up")+'"/><polyline fill="none" stroke="#59a6df" stroke-width="2.5" points="'+points("down")+'"/>'}
   svg+='</svg>';
   var note=data.length?"最大区间："+fmt(max)+" · "+time(data[0].ts)+" — "+time(data[data.length-1].ts):"该时段尚无流量记录";
   el("trafficChart").innerHTML=svg+'<div class="subtitle" style="padding:2px 8px 7px">'+escape(note)+'</div>'
@@ -320,7 +358,7 @@ document.querySelectorAll("[data-hours]").forEach(function(b){b.addEventListener
 document.addEventListener("visibilitychange",function(){if(!document.hidden)refresh()});
 window.addEventListener("focus",function(){if(!document.hidden)refresh()});
 setInterval(function(){if(uptimeAnchor&&!document.hidden)text("uptime",days(uptimeAnchor.seconds+(performance.now()-uptimeAnchor.at)/1000))},1000);
-setInterval(refresh,5000);refresh()
+setInterval(refresh,3000);refresh()
 })();
 </script>
 </body>

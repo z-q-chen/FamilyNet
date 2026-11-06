@@ -126,6 +126,61 @@ footer{text-align:center;margin:26px 0 0;color:#9aa7b6;font-size:11px}
 @media(max-width:560px){.topbar{padding:11px 14px}.brandname{font-size:13px}.brandhint{font-size:10px}.brandmark{width:30px;height:30px}.nav{gap:2px;padding:4px}.nav button{padding:7px 9px;font-size:11px}.page{padding:10px 10px 35px}.monitor{padding:20px 16px}.identity h1{font-size:17px}.flag{font-size:18px}.online{font-size:10px}.chips{margin:12px 0 23px}.resource-grid{gap:17px 14px}.res-head b{font-size:14px}.speedgrid{gap:12px}.speed-label{font-size:12px}.speed-label b{font-size:18px}.activity-dots{gap:3px}.traffic-row span,.traffic-row b{font-size:11px}.bottom-meta{gap:12px}.bottom-meta .v{font-size:12px}.region{padding:18px 11px}.probe-gridline{gap:4px;grid-template-columns:24px minmax(0,1fr)}.cells{gap:1px;height:9px}.cells i{height:9px;border-radius:1px}.probe-values{gap:8px}.probe-values strong{font-size:12px}.probe-name{font-size:12px}.ping-titlebar h2{font-size:18px}.key{gap:8px}.auditcard{padding:16px}.auditgate{padding:26px 17px}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 
+
+/* Compact dashboard and drill-down */
+.page{padding-top:10px;padding-bottom:22px}
+.topbar{padding-top:9px;padding-bottom:9px}
+.monitor{padding:18px 22px 15px}
+.identity h1{font-size:20px}
+.chips{margin:9px 0 17px}
+.resource-grid{gap:13px 19px}
+.res-sub{height:16px;margin-top:3px}
+.segment-track{height:8px;gap:2px;margin-top:4px}
+.hr{margin:15px 0}
+.speed-label b{font-size:21px}
+.activity-dots{margin:8px 0 10px}
+.quota-progress{height:10px;margin:9px 0}
+.bottom-meta{margin-top:10px;gap:12px}
+.ping-titlebar{margin:17px 2px 10px}
+.ping-titlebar h2{font-size:18px}
+.region{padding:16px 18px}
+.region-title{padding-bottom:10px}
+.region-title h3{font-size:16px}
+.ipheading{margin:10px 0 4px}
+.probe{padding:8px 0}
+.probe-head{margin-bottom:5px}
+.probe-gridline{margin:3px 0}
+.cells,.cells i{height:9px}
+.audit-top{margin:4px 0 10px}
+.audit-top h2{font-size:19px}
+.auditcard{padding:17px;margin-bottom:11px}
+.trendcard .auditstats{display:flex;gap:0;margin:10px 0 12px;border-top:1px solid #edf0f4;border-bottom:1px solid #edf0f4}
+.trendcard .stat{flex:1;padding:9px 12px}
+.trendcard .stat + .stat{border-left:1px solid #edf0f4}
+.trendcard .stat b{font-size:18px;margin-top:2px}
+.chartwrap{min-height:185px;touch-action:manipulation;cursor:crosshair}
+.chartwrap svg{width:100%;height:185px;display:block}
+.legend{margin-top:7px}
+.selectedbar{margin:7px 2px 11px;align-items:center}
+.selectedbar strong{display:block;font-size:15px}
+.selectedbar .subtitle{display:block;margin-top:3px}
+.auditrankgrid{display:grid;grid-template-columns:1fr 1fr;gap:13px;align-items:start}
+.auditrankgrid .auditcard{min-height:220px}
+.leaderboard{display:flex;flex-direction:column}
+.rankitem{padding:9px 0;border-bottom:1px solid #eff2f5}
+.rankitem:last-child{border:0}
+.ranktop{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.ranktitle{font-size:12px;font-weight:750;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rankamount{font-weight:750;font-size:13px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.rankmeta{font-size:10px;color:#8795a4;display:flex;justify-content:space-between;gap:9px;margin:3px 0 5px}
+.rankbar{height:5px;border-radius:10px;background:#edf1f5;overflow:hidden}
+.rankbar i{height:100%;display:block;background:linear-gradient(90deg,#65a6e6,#31b88e);border-radius:10px}
+.auditrankgrid table td,.auditrankgrid table th{padding:9px 5px;font-size:11px}
+.auditrankgrid table td .sub{display:block;color:#97a2ae;font-size:10px}
+@media(max-width:960px){.region-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.auditrankgrid{grid-template-columns:1fr 1fr}}
+@media(max-width:760px){.region-grid,.auditrankgrid{grid-template-columns:1fr}}
+@media(max-width:560px){.monitor{padding:16px 13px}.resource-grid{gap:11px}.hr{margin:13px 0}.speed-label b{font-size:16px}.bottom-meta{gap:8px}.region{padding:13px}.auditcard{padding:14px}.trendcard .stat{padding:8px 5px}.trendcard .stat b{font-size:15px}.chartwrap svg{height:160px}.chartwrap{min-height:160px}.nav button{padding:7px 8px}}
+
 </style>
 </head>
 <body>
@@ -173,11 +228,11 @@ footer{text-align:center;margin:26px 0 0;color:#9aa7b6;font-size:11px}
   </div>
  </article>
  <div class="ping-titlebar">
-  <div><h2>线路质量 · 12 组</h2><div class="hint">最近 24 小时 · 每 30 分钟一格 · 上排延迟 / 下排 TCP 探测失败率</div></div>
+  <div><h2>线路质量 · 12 组</h2><div class="hint">24 小时 · 30 分钟/格 · 延迟 / 失败率</div></div>
   <div class="key"><span><i></i>延迟</span><span><i class="loss"></i>正常</span><span><i class="missing"></i>无数据</span></div>
  </div>
  <div class="region-grid" id="pinggrid"><div class="card region"><div class="empty">正在加载线路检测历史…</div></div></div>
- <div class="ping-footer">48 格时间位置一一对应；TCP 探测失败率由每轮 5 次连接测试统计，不代表 ICMP 丢包率。</div>
+ 
 </section>
 <section id="audit" hidden>
  <div id="auditGate" class="card auditgate">
@@ -186,10 +241,32 @@ footer{text-align:center;margin:26px 0 0;color:#9aa7b6;font-size:11px}
  </div>
  <div id="auditContent" hidden>
   <div class="between audit-top"><h2>流量分析</h2><div class="auditbar"><button data-hours="1" class="range" type="button">1 小时</button><button data-hours="24" class="range active" type="button">24 小时</button><button data-hours="168" class="range" type="button">7 天</button><button data-hours="720" class="range" type="button">30 天</button></div></div>
-  <div class="auditstats"><div class="card stat"><span class="subtitle">上传</span><b id="auditUp">—</b></div><div class="card stat"><span class="subtitle">下载</span><b id="auditDown">—</b></div><div class="card stat"><span class="subtitle">合计</span><b id="auditTotal">—</b></div></div>
-  <div class="between" style="margin:10px 0 15px"><span class="subtitle">网络连接采样数据</span><button class="tinybutton" type="button" id="auditLogout">锁定流量分析</button></div>
-  <div class="card auditcard"><h3>流量趋势</h3><div class="chartwrap" id="trafficChart"><div class="empty">正在加载</div></div><div class="legend"><span><i style="background:#d5a43e"></i>上传</span><span><i style="background:#59a6df"></i>下载</span></div></div>
-  <div class="card auditcard"><div class="between"><h3>连接流量排行</h3><span class="subtitle">内核连接采样 · 近似值</span></div><div class="table-scroll"><table><thead><tr><th style="width:35%">来源</th><th style="width:35%">目标</th><th class="num">去向</th><th class="num">回向</th></tr></thead><tbody id="flowRows"><tr><td colspan="4">正在加载</td></tr></tbody></table></div></div>
+  <div class="card auditcard trendcard">
+    <div class="between">
+      <div><h3>流量趋势</h3><span class="subtitle" id="chartHint">点击曲线查看对应时段</span></div>
+      <button class="tinybutton" type="button" id="auditLogout">锁定</button>
+    </div>
+    <div class="auditstats">
+      <div class="stat"><span class="subtitle">上传</span><b id="auditUp">—</b></div>
+      <div class="stat"><span class="subtitle">下载</span><b id="auditDown">—</b></div>
+      <div class="stat"><span class="subtitle">总流量</span><b id="auditTotal">—</b></div>
+    </div>
+    <div class="chartwrap" id="trafficChart"><div class="empty">加载中</div></div>
+    <div class="legend"><span><i style="background:#d5a43e"></i>上传</span><span><i style="background:#59a6df"></i>下载</span><span>轻点曲线选择时段</span></div>
+  </div>
+  <div class="between selectedbar">
+    <div><strong id="selectedPeriod">流量排行</strong><span id="rankSummary" class="subtitle">加载中</span></div>
+    <span id="captureStatus" class="subtitle"></span>
+  </div>
+  <div class="auditrankgrid">
+    <div class="card auditcard"><h3>应用 / 服务排行</h3><div id="serviceRows" class="leaderboard"><div class="empty">选择图表时段</div></div></div>
+    <div class="card auditcard"><h3>访问目的地</h3>
+      <div class="table-scroll"><table>
+        <thead><tr><th style="width:40%">目标</th><th>归属（推测）</th><th class="num">流量</th></tr></thead>
+        <tbody id="flowRows"><tr><td colspan="3" class="empty">选择图表时段</td></tr></tbody>
+      </table></div>
+    </div>
+  </div>
  </div>
 </section>
 <footer>FamilyNet Monitor</footer>
@@ -294,9 +371,9 @@ function renderPings(data){
   }
   var out="";
   groups.forEach(function(g){
-    out+='<article class="card region"><div class="region-title"><h3>'+g.name+'</h3><small>48 个半小时刻度</small></div>';
+    out+='<article class="card region"><div class="region-title"><h3>'+g.name+'</h3><small>IPv4 / IPv6</small></div>';
     [["IPv4",g.v4],["IPv6",g.v6]].forEach(function(part){
-      out+='<div class="ipheading"><b>'+part[0]+'</b><small>电信 → 联通 → 移动</small></div>';
+      out+='<div class="ipheading"><b>'+part[0]+'</b></div>';
       part[1].forEach(function(id,index){out+=probeHTML(byID[String(id)],carriers[index])});
     });
     out+='</article>';

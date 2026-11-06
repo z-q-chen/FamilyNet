@@ -236,7 +236,8 @@ class Store:
                 drx INTEGER NOT NULL, dtx INTEGER NOT NULL);
               CREATE TABLE IF NOT EXISTS pings(
                 id INTEGER PRIMARY KEY AUTOINCREMENT, ts INTEGER NOT NULL,
-                task_id INTEGER NOT NULL, latency REAL, ok INTEGER NOT NULL);
+                task_id INTEGER NOT NULL, latency REAL, ok INTEGER NOT NULL,
+                loss REAL);
               CREATE INDEX IF NOT EXISTS pings_task_time ON pings(task_id,ts);
               CREATE TABLE IF NOT EXISTS flows(
                 id TEXT PRIMARY KEY, first_ts INTEGER NOT NULL,
@@ -256,6 +257,9 @@ class Store:
                 updated_at INTEGER NOT NULL
               );
             """)
+            ping_cols = {col[1] for col in self.conn.execute("PRAGMA table_info(pings)")}
+            if "loss" not in ping_cols:
+                self.conn.execute("ALTER TABLE pings ADD COLUMN loss REAL")
 
     def monthly_count(self, cycle_start, rx, tx, current_boot, now):
         """Accumulate post-reset bytes, surviving monitor restarts and reboots."""
@@ -304,11 +308,11 @@ class Store:
                 (now, iface, rx, tx, drx, dtx)
             )
 
-    def ping(self, task, latency, ok):
+    def ping(self, task, latency, ok, loss=None):
         with self.lock, self.conn:
             self.conn.execute(
-                "INSERT INTO pings(ts,task_id,latency,ok) VALUES(?,?,?,?)",
-                (int(time.time()), task, latency, 1 if ok else 0)
+                "INSERT INTO pings(ts,task_id,latency,ok,loss) VALUES(?,?,?,?,?)",
+                (int(time.time()), task, latency, 1 if ok else 0, loss)
             )
 
     def cleanup(self):
@@ -336,18 +340,32 @@ class Store:
 
 
 def ping_target(task):
+    """Five TCP connect probes; failures approximate loss, not ICMP loss."""
     raw = task["target"]
     if raw.startswith("["):
         host, port = raw[1:].split("]:", 1)
     else:
         host, port = raw.rsplit(":", 1)
-    start = time.monotonic()
+    latencies = []
+    failures = 0
     try:
-        with socket.create_connection((host, int(port)), timeout=3.0):
-            pass
-        return round((time.monotonic() - start) * 1000, 2), True
-    except (OSError, ValueError):
-        return None, False
+        destination_port = int(port)
+    except ValueError:
+        return None, False, 100.0
+    for _ in range(5):
+        start = time.monotonic()
+        try:
+            with socket.create_connection((host, destination_port), timeout=2.0):
+                pass
+            latencies.append((time.monotonic() - start) * 1000)
+        except OSError:
+            failures += 1
+        if STOP.is_set():
+            break
+    attempts = len(latencies) + failures
+    loss = round(100 * failures / attempts, 1) if attempts else 100.0
+    latency = round(sum(latencies) / len(latencies), 2) if latencies else None
+    return latency, bool(latencies), loss
 
 
 def ping_loop(store, tasks):
@@ -361,8 +379,8 @@ def ping_loop(store, tasks):
                 if last is not None and now - last < max(60, task["interval"]):
                     continue
                 def work(t):
-                    latency, ok = ping_target(t)
-                    store.ping(t["id"], latency, ok)
+                    latency, ok, loss = ping_target(t)
+                    store.ping(t["id"], latency, ok, loss)
                 pool.submit(work, task)
             STOP.wait(30)
     finally:
@@ -647,13 +665,14 @@ class Monitor:
     def pings(self):
         since = int(time.time()) - 86400
         data = self.db.execute(
-            "SELECT task_id,ts,latency,ok FROM pings WHERE ts>=? ORDER BY ts",
+            "SELECT task_id,ts,latency,ok,loss FROM pings WHERE ts>=? ORDER BY ts",
             (since,)
         )
         by_id = {}
-        for task, ts, latency, ok in data:
+        for task, ts, latency, ok, loss in data:
             by_id.setdefault(str(task), []).append(
-                {"ts": ts, "latency": latency, "ok": bool(ok)}
+                {"ts": ts, "latency": latency, "ok": bool(ok),
+                 "loss": round(float(loss), 1) if loss is not None else (0.0 if ok else 100.0)}
             )
         return [{"id": task["id"], "name": task["name"], "target": task["target"],
                  "history": by_id.get(str(task["id"]), [])}

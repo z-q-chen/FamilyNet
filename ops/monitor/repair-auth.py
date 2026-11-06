@@ -30,7 +30,7 @@ class LocalTLS(http.client.HTTPSConnection):
         self.sock = self._context.wrap_socket(sock, server_hostname=PUBLIC_HOST)
 
 
-def get_status(password, public=False, path="/api/auth"):
+def get_status(password, public=False, path="/api/state?audit=auth"):
     auth = base64.b64encode(("admin:" + password).encode("utf-8")).decode("ascii")
     headers = {"Authorization": "Basic " + auth, "Accept": "application/json"}
     if public:
@@ -110,7 +110,7 @@ def main():
         if external != 200:
             raise RuntimeError("9443 反向代理验证接口状态：" + str(external))
         # Confirm that the private data route also accepts the same credentials.
-        if get_status(password, public=True, path="/api/flows") != 200:
+        if get_status(password, public=True, path="/api/state?audit=flows") != 200:
             raise RuntimeError("9443 流量明细接口仍无法通过身份验证")
         CREDS.write_text(
             "地址: https://" + PUBLIC_HOST + ":9443\n"

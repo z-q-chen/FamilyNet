@@ -165,23 +165,52 @@ def reset_start(day, now=None):
     return int(datetime(y, m, curr).timestamp())
 
 
+def next_month_date(source, day):
+    year = source.year + (1 if source.month == 12 else 0)
+    month = 1 if source.month == 12 else source.month + 1
+    return source.replace(
+        year=year, month=month,
+        day=min(day, calendar.monthrange(year, month)[1])
+    )
+
+
 def monthly_start_utc(now, reset_day, first_reset_at):
-    """Return UTC cycle start and next reset; None before the first reset."""
-    now_dt = datetime.fromtimestamp(now, timezone.utc)
-    day = max(1, min(31, int(reset_day)))
-    def boundary(year, month):
-        return datetime(year, month, min(day, calendar.monthrange(year, month)[1]), tzinfo=timezone.utc)
-    cur = boundary(now_dt.year, now_dt.month)
-    if cur.timestamp() > now:
-        y, m = (now_dt.year - 1, 12) if now_dt.month == 1 else (now_dt.year, now_dt.month - 1)
-        cur = boundary(y, m)
-    y, m = (cur.year + 1, 1) if cur.month == 12 else (cur.year, cur.month + 1)
-    next_reset = boundary(y, m)
+    """Return current UTC billing boundary, or None before the first reset."""
+    first = datetime.fromtimestamp(first_reset_at, timezone.utc)
     if now < first_reset_at:
-        return None, int(first_reset_at)
-    if cur.timestamp() < first_reset_at:
-        cur = datetime.fromtimestamp(first_reset_at, timezone.utc)
-    return int(cur.timestamp()), int(next_reset.timestamp())
+        return None, first_reset_at
+    day = max(1, min(31, int(reset_day)))
+    cursor = first
+    while next_month_date(cursor, day).timestamp() <= now:
+        cursor = next_month_date(cursor, day)
+    return int(cursor.timestamp()), int(next_month_date(cursor, day).timestamp())
+
+
+def ensure_billing_schedule(cfg):
+    """Persist a monthly first reset based on the current boot date.
+
+    This VPS's first billing month uses its live network-interface counters.
+    Later months use the continuously sampled persistent monthly counter.
+    """
+    if int(cfg.get("first_reset_at") or 0) > 0 and int(cfg.get("reset_day") or 0) > 0:
+        return cfg
+    boot_seconds = float(Path("/proc/uptime").read_text().split()[0])
+    boot_time = datetime.fromtimestamp(time.time() - boot_seconds, timezone.utc)
+    day = int(cfg.get("reset_day") or 0)
+    if not 1 <= day <= 31:
+        day = boot_time.day
+    first = next_month_date(boot_time, day)
+    current = time.time()
+    while first.timestamp() <= current:
+        first = next_month_date(first, day)
+    new_cfg = dict(cfg)
+    new_cfg["reset_day"] = day
+    new_cfg["first_reset_at"] = int(first.timestamp())
+    target = CONFIG.with_suffix(".tmp")
+    target.write_text(json.dumps(new_cfg, ensure_ascii=False, indent=2) + "\n")
+    os.chmod(target, 0o600)
+    os.replace(target, CONFIG)
+    return new_cfg
 
 
 def boot_id():
@@ -559,11 +588,8 @@ class Monitor:
         mem_total, mem_used = memory()
         disk = shutil.disk_usage("/")
         uptime = float(Path("/proc/uptime").read_text().split()[0])
-        # The public VPS counter is the interface's current lifetime counter.
-        # It must not depend on this monitor's database start date or a
-        # monthly billing interval. Linux exposes these values directly.
-        up_total = int(tx)
-        down_total = int(rx)
+        # The interface counters seed the first billing period. They are not
+        # exposed as standalone lifetime totals on the public dashboard.
         first_sample_row = self.db.execute("SELECT MIN(ts) FROM traffic")[0]
         # First month: the kernel's since-boot bytes. Later months: a
         # persisted billing counter starting at each configured reset time.
@@ -574,10 +600,10 @@ class Monitor:
         else:
             cycle_start, next_reset = None, None
         if cycle_start is None:
-            cycle_down, cycle_up = down_total, up_total
+            cycle_down, cycle_up = int(rx), int(tx)
         else:
             cycle_down, cycle_up = self.db.monthly_count(
-                cycle_start, down_total, up_total, boot_id(), now
+                cycle_start, int(rx), int(tx), boot_id(), now
             )
         mode = self.cfg.get("quota_mode", "sum")
         used = {"up": cycle_up, "down": cycle_down,
@@ -590,12 +616,10 @@ class Monitor:
             "uptime": uptime, "cpu": cpu,
             "memory_total": mem_total, "memory_used": mem_used,
             "disk_total": disk.total, "disk_used": disk.used,
-            "rxps": rxps, "txps": txps, "up_total": up_total,
-            "down_total": down_total, "used": used,
+            "rxps": rxps, "txps": txps, "used": used,
             "quota": float(self.cfg["quota_gib"]) * 1024**3,
             "quota_mode": mode, "first_sample": first_sample_row[0],
-            "counter_source": "interface_since_boot",
-            "billing_source": "boot_first_then_monthly",
+            "billing_source": "first_boot_then_monthly",
             "cycle_up": cycle_up, "cycle_down": cycle_down,
             "cycle_start": cycle_start, "next_reset_at": next_reset,
             "reset_day": self.cfg.get("reset_day", 0),
@@ -736,7 +760,7 @@ def main():
         os.chmod(CONFIG, 0o600)
         print("初始化完成，监控接口:", config["interface"])
         return
-    cfg = json.loads(CONFIG.read_text())
+    cfg = ensure_billing_schedule(json.loads(CONFIG.read_text()))
     app = Monitor(cfg)
     if opts.import_komari:
         migrate_komari(app)

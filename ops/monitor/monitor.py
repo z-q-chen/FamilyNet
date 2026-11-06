@@ -17,6 +17,7 @@ import subprocess
 import sys
 import threading
 import time
+import urllib.request
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -330,6 +331,101 @@ def collector_loop(store, cfg):
         STOP.wait(max(1, int(cfg.get("sample_seconds", 30)) - (time.monotonic() - started)))
 
 
+
+def komari_rpc(method, params=None):
+    payload = json.dumps({
+        "jsonrpc": "2.0", "id": 1,
+        "method": "common:" + method, "params": params or {}
+    }).encode()
+    req = urllib.request.Request(
+        "http://127.0.0.1:25774/api/rpc2", data=payload,
+        method="POST", headers={"Content-Type": "application/json"}
+    )
+    with urllib.request.urlopen(req, timeout=7) as response:
+        obj = json.load(response)
+    if obj.get("error"):
+        raise RuntimeError(str(obj["error"].get("message", "Komari RPC error")))
+    return obj.get("result")
+
+
+def migrate_komari(app):
+    """Carry forward probe traffic and existing 24h ping history once.
+
+    Cumulative probe totals may be reset-aware/monthly as configured in the
+    old agent; retain its observed value and add only newly sampled deltas.
+    """
+    cfg = app.cfg
+    if cfg.get("baseline_at"):
+        print("已有探针累计流量基线，不重复导入")
+        return
+    try:
+        result = komari_rpc("getNodesLatestStatus")
+        if not isinstance(result, dict) or len(result) != 1:
+            raise ValueError("Komari 必须恰好有一台在线服务器供自动迁移")
+        status = next(iter(result.values()))
+        if not isinstance(status, dict):
+            raise ValueError("Komari 状态结构不匹配")
+        base_up = int(status.get("net_total_up", -1))
+        base_down = int(status.get("net_total_down", -1))
+        if base_up < 0 or base_down < 0 or base_up + base_down == 0:
+            raise ValueError("没有有效的 Komari 累计流量")
+        source = "Komari Agent"
+    except Exception as e:
+        # The old RPC can be inaccessible or stale. The current physical
+        # interface counters from Linux are still better than resetting to 0.
+        base_down, base_up = read_iface(cfg["interface"])
+        if base_up + base_down == 0:
+            raise RuntimeError("没有可迁移的流量基线") from e
+        source = "Linux interface / since boot"
+        print("Komari 读取失败，采用 Linux 网卡已有流量:", str(e)[:160])
+    now = int(time.time())
+    cfg = dict(cfg)
+    cfg["baseline_at"] = now
+    cfg["baseline_up"] = base_up
+    cfg["baseline_down"] = base_down
+    cfg["baseline_source"] = source
+    # Atomically persist before disabling the old probe.
+    tmp = CONFIG.with_suffix(".tmp")
+    tmp.write_text(json.dumps(cfg, ensure_ascii=False, indent=2) + "\n")
+    os.chmod(tmp, 0o600)
+    os.replace(tmp, CONFIG)
+    app.cfg.update(cfg)
+    print("流量基线: 上传", base_up, "下载", base_down, "来源", source)
+
+    # Optional: preserve the colored, per-task historical ping bars.
+    try:
+        records = komari_rpc("getRecords", {
+            "type": "ping", "hours": 24, "task_id": -1, "maxCount": -1
+        })
+        if not isinstance(records, dict):
+            return
+        allowed = {int(task["id"]) for task in cfg["targets"]}
+        rows = []
+        for x in records.get("records", [])[:5000]:
+            task = int(x["task_id"])
+            if task not in allowed:
+                continue
+            raw = x.get("time")
+            stamp = int(datetime.fromisoformat(str(raw).replace("Z", "+00:00")).timestamp())
+            if stamp < now - 86400 or stamp > now + 60:
+                continue
+            value = float(x["value"])
+            rows.append((stamp, task, value if value >= 0 else None, 1 if value >= 0 else 0))
+        with app.db.lock, app.db.conn:
+            for stamp, task, latency, ok in rows:
+                found = app.db.conn.execute(
+                    "SELECT 1 FROM pings WHERE task_id=? AND ts=? LIMIT 1", (task, stamp)
+                ).fetchone()
+                if not found:
+                    app.db.conn.execute(
+                        "INSERT INTO pings(ts,task_id,latency,ok) VALUES(?,?,?,?)",
+                        (stamp, task, latency, ok)
+                    )
+        print("已导入 Ping 历史:", len(rows), "条")
+    except Exception as e:
+        print("旧 Ping 历史暂未导入:", str(e)[:150])
+
+
 class Monitor:
     def __init__(self, cfg):
         self.cfg = cfg
@@ -361,12 +457,15 @@ class Monitor:
         disk = shutil.disk_usage("/")
         uptime = float(Path("/proc/uptime").read_text().split()[0])
         since = reset_start(self.cfg.get("reset_day", 0)) or 0
+        baseline_at = int(self.cfg.get("baseline_at") or 0)
+        use_baseline = baseline_at > 0 and (since == 0 or since <= baseline_at)
+        start = max(since, baseline_at) if use_baseline else since
         values = self.db.execute(
             "SELECT COALESCE(SUM(drx),0),COALESCE(SUM(dtx),0),MIN(ts) "
-            "FROM traffic WHERE ts>=?", (since,)
+            "FROM traffic WHERE ts>?", (start,)
         )[0]
-        up_total = int(values[1])
-        down_total = int(values[0])
+        up_total = int(values[1]) + (int(self.cfg.get("baseline_up") or 0) if use_baseline else 0)
+        down_total = int(values[0]) + (int(self.cfg.get("baseline_down") or 0) if use_baseline else 0)
         mode = self.cfg.get("quota_mode", "sum")
         used = {"up": up_total, "down": down_total, "max": max(up_total, down_total),
                 "sum": up_total + down_total, "min": min(up_total, down_total)}.get(mode, up_total + down_total)
@@ -380,6 +479,7 @@ class Monitor:
             "down_total": down_total, "used": used,
             "quota": float(self.cfg["quota_gib"]) * 1024**3,
             "quota_mode": mode, "first_sample": values[2],
+            "baseline_source": self.cfg.get("baseline_source", ""),
             "reset_day": self.cfg.get("reset_day", 0),
             "price_usd": self.cfg.get("price_usd"),
             "price_cycle_months": self.cfg.get("price_cycle_months"),
@@ -506,6 +606,7 @@ def main():
     args = argparse.ArgumentParser()
     args.add_argument("--init-password", metavar="PASSWORD")
     args.add_argument("--check", action="store_true")
+    args.add_argument("--import-komari", action="store_true")
     opts = args.parse_args()
     if opts.init_password:
         CONFIG.parent.mkdir(parents=True, exist_ok=True)
@@ -519,6 +620,9 @@ def main():
         return
     cfg = json.loads(CONFIG.read_text())
     app = Monitor(cfg)
+    if opts.import_komari:
+        migrate_komari(app)
+        return
     if opts.check:
         print(json.dumps(app.state(), ensure_ascii=False))
         return
@@ -526,9 +630,12 @@ def main():
                      daemon=True, name="fn-collector").start()
     threading.Thread(target=ping_loop, args=(app.db, cfg["targets"]),
                      daemon=True, name="fn-pinger").start()
-    server = ThreadingHTTPServer(("127.0.0.1", 25775), handler_factory(app))
+    port = int(os.environ.get("FAMILYNET_MONITOR_PORT", "25775"))
+    if port not in (25774, 25775):
+        raise ValueError("unsupported monitor port")
+    server = ThreadingHTTPServer(("127.0.0.1", port), handler_factory(app))
     server.daemon_threads = True
-    print("FamilyNet Monitor 127.0.0.1:25775", flush=True)
+    print("FamilyNet Monitor", port, flush=True)
     try:
         server.serve_forever(poll_interval=1)
     except KeyboardInterrupt:

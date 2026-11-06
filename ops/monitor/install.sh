@@ -197,8 +197,12 @@ else
   # The old agent's cumulative totals are the starting point, not zero.
   # Also imports 24h of old colored ping history when the RPC exposes it.
   python3 "$APP/monitor.py" --import-komari
-  python3 "$APP/monitor.py" --check | python3 -c \
-    'import json,sys; d=json.load(sys.stdin); assert d["up_total"]+d["down_total"]>0'
+  if ! python3 "$APP/monitor.py" --check | python3 -c \
+    'import json,sys; d=json.load(sys.stdin); assert d["up_total"]+d["down_total"]>0 and d["baseline_source"]=="Komari Agent"'; then
+    cp -a "$BACK/monitor-config.json.before" "$ETC/config.json"
+    echo "未能核实 Komari 原有累计流量，已恢复新版配置并终止迁移。" >&2
+    exit 1
+  fi
 
   # Backup current Komari DBs including WAL. Full archive follows after stop.
   if [ -f /var/lib/komari/komari.db ]; then

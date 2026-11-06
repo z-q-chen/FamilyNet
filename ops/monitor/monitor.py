@@ -471,13 +471,12 @@ def handler_factory(app):
             path = urlparse(self.path)
             if path.path == "/healthz":
                 return self.respond(200, '{"status":"ok"}')
-            if not self.authorized():
-                self.send_response(401)
-                self.send_header("WWW-Authenticate", 'Basic realm="FamilyNet Monitor"')
-                self.send_header("Cache-Control", "no-store")
-                self.send_header("Content-Length", "0")
-                self.end_headers()
-                return
+            # Overview and its metrics are public. Audit data is protected
+            # at the server endpoint, not merely hidden in the interface.
+            if path.path in ("/api/auth", "/api/history", "/api/flows") and not self.authorized():
+                return self.respond(401, '{"error":"unauthorized"}')
+            if path.path == "/api/auth":
+                return self.respond(200, '{"ok":true}')
             if path.path in ("/", "/index.html"):
                 try:
                     return self.respond(200, HTML.read_bytes(), "text/html; charset=utf-8")

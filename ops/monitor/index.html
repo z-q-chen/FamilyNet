@@ -76,9 +76,9 @@ header{border-bottom:1px solid #222b36;background:rgba(10,14,19,.96);position:st
 .pingvalue{font-size:26px;font-weight:750;line-height:1;letter-spacing:-.035em;font-variant-numeric:tabular-nums;white-space:nowrap}
 .pingvalue small{color:var(--faint);font-size:11px;font-weight:510;letter-spacing:0}
 .pingtarget{font-size:10px;color:var(--faint);text-overflow:ellipsis;overflow:hidden;white-space:nowrap;min-width:0}
-.spark{height:34px;display:flex;align-items:flex-end;gap:2px;overflow:hidden;margin-top:16px}
-.spark i{min-width:1px;flex:1;height:4px;background:var(--green);border-radius:2px 2px 0 0;opacity:.85}
-.spark i.warn{background:var(--yellow)}.spark i.bad{background:var(--red)}.spark i.empty{background:var(--line)}
+.spark{display:grid;grid-template-columns:repeat(48,minmax(0,1fr));gap:2px;align-items:center;min-width:0;height:19px;overflow:hidden;margin-top:15px}
+.spark i{min-width:0;height:12px;background:#344252;border-radius:2px;opacity:.97}
+.spark i.s1{background:#28b78d}.spark i.s2{background:#73d08a}.spark i.s3{background:#d2d05e}.spark i.s4{background:#f0aa56}.spark i.s5{background:#ed727d}.spark i.empty{background:#344252;opacity:.55}
 .pingstamp{margin-top:9px;font-size:10px;color:#6b7d93}
 .auditbar{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
 .range,.smallbutton{border:1px solid var(--line);background:#131b25;color:#9caec1;border-radius:8px;padding:6px 10px;font-size:11px;white-space:nowrap}
@@ -127,7 +127,7 @@ footer{text-align:center;color:#5f7288;font-size:11px;margin:28px 0 0}
   <div class="overview-grid">
     <div class="glass maincard">
       <div class="cardtitle">
-        <div><div class="eyebrow">SERVER · SYSTEM</div><h2 id="serverName">洛杉矶 VPS</h2><div class="cap">运行时长 <span id="uptime">—</span>　 /　 负载 <span id="load">—</span></div></div>
+        <div><div class="eyebrow">SERVER · SYSTEM</div><h2 id="serverName">洛杉矶 VPS</h2><div class="cap">在线时间 <span id="uptime">—</span>　 /　 负载 <span id="load">—</span></div></div>
         <span class="status" id="serverStatus">运行中</span>
       </div>
       <div class="mini-grid">
@@ -209,14 +209,14 @@ footer{text-align:center;color:#5f7288;font-size:11px;margin:28px 0 0}
 <script>
 (function(){
 "use strict";
-var page="home",hours=24,stampPing=0,stampAudit=0,busy=false,loaded=false,auditAuth="";
+var page="home",hours=24,stampPing=0,stampAudit=0,busy=false,loaded=false,auditAuth="",uptimeAnchor=null;
 function el(id){return document.getElementById(id)}
 function text(id,value){var e=el(id);if(e)e.textContent=value}
 function fmt(n){if(n===null||n===undefined||!Number.isFinite(Number(n)))return "—";var v=Math.abs(Number(n)),a=["B","KB","MB","GB","TB"];var i=0;while(v>=1024&&i<a.length-1){v/=1024;i++}return (Number(n)<0?"-":"")+v.toFixed(2)+" "+a[i]}
 function pct(part,total){return total?Math.max(0,Math.min(100,part/total*100)):0}
 function bar(id,p){el(id).style.width=Math.max(0,Math.min(100,p)).toFixed(2)+"%"}
 function time(ts){return ts?new Date(ts*1000).toLocaleString("zh-CN",{hour12:false}):"—"}
-function days(sec){var n=Math.floor(sec||0);return Math.floor(n/86400)+" 天 "+Math.floor(n%86400/3600)+" 小时"}
+function days(sec){var n=Math.max(0,Math.floor(sec||0));return Math.floor(n/86400)+" 天 "+String(Math.floor(n%86400/3600)).padStart(2,"0")+" 时 "+String(Math.floor(n%3600/60)).padStart(2,"0")+" 分 "+String(n%60).padStart(2,"0")+" 秒"}
 function escape(s){return String(s===undefined||s===null?"":s).replace(/[&<>"']/g,function(x){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[x]})}
 function authHeader(password){var bytes=new TextEncoder().encode("admin:"+password),v="";bytes.forEach(function(b){v+=String.fromCharCode(b)});return "Basic "+btoa(v)}
 async function api(url,isPrivate){var opts={cache:"no-store",credentials:"same-origin"};if(isPrivate&&auditAuth)opts.headers={Authorization:auditAuth};var r=await fetch(url,opts);if(r.status===401){var err=new Error("unauthorized");err.authFailure=true;throw err}if(!r.ok)throw new Error(String(r.status));return r.json()}
@@ -226,6 +226,7 @@ function setActive(status){el("dot").classList.toggle("off",!status);text("activ
 function renderState(s){
   text("serverName",s.title||s.hostname||"洛杉矶 VPS");text("report","最近采集 "+time(s.time));
   document.title=(s.title||"洛杉矶 VPS 监控")+" · FamilyNet";
+  uptimeAnchor={seconds:Number(s.uptime)||0,at:performance.now()};
   text("uptime",days(s.uptime));text("load",(s.load||[]).join(" / "));
   text("cpu",s.cpu===null?"—":s.cpu.toFixed(2)+"%");
   text("mem",pct(s.memory_used,s.memory_total).toFixed(2)+"%");
@@ -250,12 +251,16 @@ function renderPings(data){
     var h=t.history||[],last=h.length?h[h.length-1]:null;
     var good=last&&last.ok,lat=good?Number(last.latency):null;
     var val=last?(good?lat.toFixed(2):"超时"):"—";
-    var max=0;h.forEach(function(q){if(q.ok)max=Math.max(max,q.latency)});
-    var bars=h.slice(-48).map(function(q){
-      var height=q.ok?(max?Math.max(9,Math.min(100,q.latency/max*95)):12):9;
-      return '<i class="'+level(q.latency,q.ok)+'" style="height:'+height+'%" title="'+escape(time(q.ts))+' · '+(q.ok?q.latency+" ms":"失败")+'"></i>';
+    var epoch=Math.floor(Date.now()/1800000), slots=new Array(48);
+    h.forEach(function(q){
+      var idx=Math.floor(q.ts/1800)-epoch+47;
+      if(idx>=0&&idx<48)slots[idx]=q;
+    });
+    var bars=slots.map(function(q,i){
+      if(!q)return '<i class="empty" title="'+escape(time((epoch-47+i)*1800))+' · 无数据"></i>';
+      var quality=!q.ok?"s5":q.latency<80?"s1":q.latency<130?"s2":q.latency<200?"s3":q.latency<300?"s4":"s5";
+      return '<i class="'+quality+'" title="'+escape(time(q.ts))+' · '+(q.ok?q.latency+" ms":"超时")+'"></i>';
     }).join("");
-    if(!bars)bars='<i class="empty" style="height:8%"></i>';
     out+='<div class="glass pingcard"><div class="pingtop"><span class="pingname">'+escape(t.name)+'</span><span class="pingvalue" style="color:'+(good?"var(--green)":last?"var(--red)":"var(--muted)")+'">'+val+(good?'<small> ms</small>':"")+'</span></div><div class="pingtarget" title="'+escape(t.target)+'">'+escape(t.target)+'</div><div class="spark">'+bars+'</div><div class="pingstamp">最近测试 '+time(last&&last.ts)+'</div></div>';
   });
   el("pinggrid").innerHTML=out;
@@ -314,6 +319,7 @@ document.querySelectorAll("[data-hours]").forEach(function(b){b.addEventListener
 })});
 document.addEventListener("visibilitychange",function(){if(!document.hidden)refresh()});
 window.addEventListener("focus",function(){if(!document.hidden)refresh()});
+setInterval(function(){if(uptimeAnchor&&!document.hidden)text("uptime",days(uptimeAnchor.seconds+(performance.now()-uptimeAnchor.at)/1000))},1000);
 setInterval(refresh,5000);refresh()
 })();
 </script>

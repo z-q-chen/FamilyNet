@@ -251,7 +251,7 @@ function renderPings(data){
     var h=t.history||[],last=h.length?h[h.length-1]:null;
     var good=last&&last.ok,lat=good?Number(last.latency):null;
     var val=last?(good?lat.toFixed(2):"超时"):"—";
-    var epoch=Math.floor(Date.now()/1800000), slots=new Array(48);
+    var epoch=Math.floor(Date.now()/1800000), slots=new Array(48).fill(null);
     h.forEach(function(q){
       var idx=Math.floor(q.ts/1800)-epoch+47;
       if(idx>=0&&idx<48)slots[idx]=q;

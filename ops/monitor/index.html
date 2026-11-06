@@ -37,6 +37,7 @@ header{position:sticky;top:0;z-index:20;border-bottom:1px solid rgba(255,255,255
 .auditcard{padding:16px 18px;margin-bottom:12px}.auditcard h3{font-size:14px;margin:0 0 12px;font-weight:670}.chartwrap{width:100%;overflow:hidden;background:rgba(255,255,255,.025);border-radius:11px;padding:8px}.chartwrap svg{width:100%;height:auto;min-height:135px;display:block}
 .legend{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:14px;margin-top:9px}.legend span{display:inline-flex;align-items:center;gap:5px}.legend i{height:7px;width:13px;border-radius:4px;display:inline-block}.muted{color:var(--muted)}.empty{color:var(--faint);font-size:12px;padding:10px 0}
 table{border-collapse:collapse;width:100%;font-size:12px;table-layout:fixed}th{text-align:left;font-size:11px;font-weight:500;color:var(--muted);padding:8px 6px;border-bottom:1px solid var(--line)}td{padding:10px 6px;border-bottom:1px solid rgba(255,255,255,.055);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-variant-numeric:tabular-nums}tr:last-child td{border-bottom:0}td.num,th.num{text-align:right}.table-scroll{overflow:auto}footer{margin:25px 0;color:#697e99;font-size:11px;text-align:center}
+.auditgate{max-width:480px;margin:26px auto 0;padding:27px 25px;text-align:center}.auditgate .lock{width:42px;height:42px;display:grid;place-items:center;margin:0 auto 12px;border-radius:13px;background:rgba(130,183,255,.14);color:var(--blue)}.auditgate h3{margin:4px 0 6px;font-size:18px}.auditgate p{margin:0 0 20px;font-size:12px;color:var(--muted)}.authrow{display:flex;gap:9px;align-items:stretch}.authrow input{width:100%;min-width:0;flex:1;padding:11px 12px;color:var(--fg);border:1px solid rgba(255,255,255,.18);border-radius:10px;background:rgba(255,255,255,.065);font:inherit}.authrow input:focus{outline:2px solid rgba(130,183,255,.52);outline-offset:1px}.authrow button{border:1px solid rgba(131,184,255,.34);border-radius:10px;background:rgba(130,183,255,.22);padding:10px 17px;font-size:13px;white-space:nowrap}.authrow button:hover{background:rgba(130,183,255,.3)}.autherror{min-height:20px;margin-top:9px!important;color:var(--red)!important}.smallbutton{border:1px solid var(--line);border-radius:8px;background:rgba(255,255,255,.045);font-size:11px;padding:5px 11px;color:var(--muted)}.smallbutton:hover{color:var(--fg)}
 [hidden]{display:none!important}.skeleton{opacity:.5}
 @media(max-width:860px){.pinggrid{grid-template-columns:repeat(2,minmax(0,1fr))}.maincard{padding:17px}.shell{width:min(100% - 24px,1180px)}}
 @media(max-width:530px){.pinggrid{grid-template-columns:1fr}.head{padding:12px}.head .brand h1{font-size:13px}.nav button{padding:7px 10px;font-size:11px}.cardtitle h2{font-size:17px}.netbox .netvalue{font-size:19px}.netbox{padding:10px}.stats{gap:7px}.stat{padding:10px}.stat strong{font-size:15px}.quotafoot{grid-template-columns:repeat(2,1fr);gap:10px}.value{font-size:12px} .mini-grid{gap:6px}.metric{padding:9px}.metric strong{font-size:13px} .metricline{display:block}.label{display:block}}
@@ -94,6 +95,19 @@ table{border-collapse:collapse;width:100%;font-size:12px;table-layout:fixed}th{t
   <div class="pinggrid" id="pinggrid"><div class="empty">正在加载线路数据</div></div>
 </section>
 <section id="audit" hidden>
+  <div id="auditGate" class="glass auditgate">
+    <div class="lock" aria-hidden="true">🔒</div>
+    <h3>流量分析</h3>
+    <p>输入流量审计密码查看历史和访问连接。</p>
+    <form id="auditLoginForm" autocomplete="off">
+      <div class="authrow">
+        <input id="auditPassword" type="password" aria-label="流量审计密码" placeholder="流量审计密码" required autocomplete="off">
+        <button id="auditLoginButton" type="submit">解锁</button>
+      </div>
+      <p id="authError" class="autherror" role="alert"></p>
+    </form>
+  </div>
+  <div id="auditContent" hidden>
   <div class="top">
     <h2 class="h2">流量分析</h2>
     <div class="auditbar" id="auditbar">
@@ -108,10 +122,12 @@ table{border-collapse:collapse;width:100%;font-size:12px;table-layout:fixed}th{t
     <div class="glass stat"><div class="label">下载</div><strong id="auditDown">—</strong></div>
     <div class="glass stat"><div class="label">合计</div><strong id="auditTotal">—</strong></div>
   </div>
+  <div class="flex" style="margin-bottom:12px"><span class="subtitle">访问明细仅限验证后查看</span><button class="smallbutton" type="button" id="auditLogout">锁定流量分析</button></div>
   <div class="glass auditcard"><h3>流量趋势</h3><div class="chartwrap" id="trafficChart"><div class="empty">正在加载</div></div><div class="legend"><span><i style="background:var(--green)"></i>上传</span><span><i style="background:var(--blue)"></i>下载</span></div></div>
   <div class="glass auditcard">
     <div class="flex"><h3>连接流量排行</h3><span class="subtitle">内核连接采样 · 近似值</span></div>
     <div class="table-scroll"><table><thead><tr><th style="width:36%">来源</th><th style="width:36%">目标</th><th class="num">去向</th><th class="num">回向</th></tr></thead><tbody id="flowRows"><tr><td colspan="4" class="empty">正在加载连接</td></tr></tbody></table></div>
+  </div>
   </div>
 </section>
 <footer>FamilyNet Monitor</footer>
@@ -119,7 +135,7 @@ table{border-collapse:collapse;width:100%;font-size:12px;table-layout:fixed}th{t
 <script>
 (function(){
 "use strict";
-var page="home",hours=24,stampPing=0,stampAudit=0,busy=false,loaded=false;
+var page="home",hours=24,stampPing=0,stampAudit=0,busy=false,loaded=false,auditAuth="";
 function el(id){return document.getElementById(id)}
 function text(id,value){var e=el(id);if(e)e.textContent=value}
 function fmt(n){if(n===null||n===undefined||!Number.isFinite(Number(n)))return "—";var v=Math.abs(Number(n)),a=["B","KB","MB","GB","TB"];var i=0;while(v>=1024&&i<a.length-1){v/=1024;i++}return (Number(n)<0?"-":"")+v.toFixed(2)+" "+a[i]}
@@ -128,7 +144,10 @@ function bar(id,p){el(id).style.width=Math.max(0,Math.min(100,p)).toFixed(2)+"%"
 function time(ts){return ts?new Date(ts*1000).toLocaleString("zh-CN",{hour12:false}):"—"}
 function days(sec){var n=Math.floor(sec||0);return Math.floor(n/86400)+" 天 "+Math.floor(n%86400/3600)+" 小时"}
 function escape(s){return String(s===undefined||s===null?"":s).replace(/[&<>"']/g,function(x){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[x]})}
-async function api(url){var r=await fetch(url,{cache:"no-store",credentials:"same-origin"});if(!r.ok)throw new Error(String(r.status));return r.json()}
+function authHeader(password){var bytes=new TextEncoder().encode("admin:"+password),v="";bytes.forEach(function(b){v+=String.fromCharCode(b)});return "Basic "+btoa(v)}
+async function api(url,isPrivate){var opts={cache:"no-store",credentials:"same-origin"};if(isPrivate&&auditAuth)opts.headers={Authorization:auditAuth};var r=await fetch(url,opts);if(r.status===401){var err=new Error("unauthorized");err.authFailure=true;throw err}if(!r.ok)throw new Error(String(r.status));return r.json()}
+function showAuditGate(){auditAuth="";stampAudit=0;el("auditGate").hidden=false;el("auditContent").hidden=true;el("auditPassword").value="";text("authError","")}
+async function unlockAudit(password){auditAuth=authHeader(password);try{await api("/api/auth",true);el("auditGate").hidden=true;el("auditContent").hidden=false;el("auditPassword").value="";text("authError","");stampAudit=0;refresh()}catch(e){auditAuth="";el("auditPassword").value="";text("authError",e.authFailure?"密码错误":"验证失败，请重试")}}
 function setActive(status){el("dot").classList.toggle("off",!status);text("activity",status?"已连接":"连接异常")}
 function renderState(s){
   text("serverName",s.title||s.hostname||"洛杉矶 VPS");text("report","最近采集 "+time(s.time));
@@ -199,13 +218,15 @@ async function refresh(){
     if(page==="home"&&(Date.now()-stampPing>55000||!stampPing)){
       var p=await api("/api/pings");renderPings(p);stampPing=Date.now();
     }
-    if(page==="audit"&&(Date.now()-stampAudit>15000||!stampAudit)){
-      var all=await Promise.all([api("/api/history?hours="+hours),api("/api/flows?hours="+hours)]);
+    if(page==="audit"&&auditAuth&&(Date.now()-stampAudit>15000||!stampAudit)){
+      var all=await Promise.all([api("/api/history?hours="+hours,true),api("/api/flows?hours="+hours,true)]);
       renderAudit(all[0],all[1]);stampAudit=Date.now();
     }
-  }catch(e){setActive(false);text("report",loaded?"连接中断 · "+time(Date.now()/1000):"无法连接监控服务")}
+  }catch(e){if(e.authFailure){showAuditGate()}else{setActive(false);text("report",loaded?"连接中断 · "+time(Date.now()/1000):"无法连接监控服务")}}
   finally{busy=false}
 }
+el("auditLoginForm").addEventListener("submit",function(e){e.preventDefault();var pass=el("auditPassword").value;if(pass)unlockAudit(pass)});
+el("auditLogout").addEventListener("click",function(){showAuditGate()});
 document.querySelectorAll("[data-tab]").forEach(function(b){b.addEventListener("click",function(){
   page=b.dataset.tab;
   document.querySelectorAll("[data-tab]").forEach(function(x){x.classList.toggle("active",x===b);x.setAttribute("aria-selected",x===b?"true":"false")});

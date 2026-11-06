@@ -411,7 +411,7 @@ def migrate_komari(app):
     cfg["baseline_up"] = base_up
     cfg["baseline_down"] = base_down
     cfg["baseline_source"] = source
-    if not int(cfg.get("reset_day") or 0):
+    if source == "Komari Agent" and not int(cfg.get("reset_day") or 0):
         rotate = agent_month_reset_day()
         if rotate:
             cfg["reset_day"] = rotate

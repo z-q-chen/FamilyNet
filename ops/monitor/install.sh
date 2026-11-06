@@ -30,7 +30,7 @@ ETC=/etc/familynet-monitor
 DATA=/var/lib/familynet-monitor
 BACK=/var/backups/familynet-monitor/$(date -u +%Y%m%dT%H%M%SZ)
 UNIT=/etc/systemd/system/familynet-monitor.service
-BASE=https://raw.githubusercontent.com/z-q-chen/FamilyNet/f636bf7a12ac0e60e34d933b4a87523affd75e0b/ops/monitor
+BASE=https://raw.githubusercontent.com/z-q-chen/FamilyNet/125741f2fc602bfee8bc6cc3a27c873f7068ae51/ops/monitor
 TARGET=127.0.0.1:25775
 CRED=/root/familynet-monitor-credentials.txt
 CUTOVER=0
@@ -100,7 +100,7 @@ install -m 0644 "$TMP/index.html" "$APP/index.html"
 if [ ! -f "$ETC/config.json" ]; then
   PASS=$(python3 -c 'import secrets;print(secrets.token_urlsafe(18))')
   python3 "$APP/monitor.py" --init-password "$PASS"
-  printf '地址: https://207.57.74.12:9443\n用户: admin\n密码: %s\n' "$PASS" > "$CRED"
+  printf '网页: https://207.57.74.12:9443\n流量审计账号: admin\n流量审计密码: %s\n' "$PASS" > "$CRED"
   chmod 600 "$CRED"
 fi
 
@@ -164,13 +164,27 @@ if [ "$READY" -ne 1 ]; then
   echo "新监控未通过检查，9443 保持原配置。" >&2
   exit 1
 fi
+# Verify the overview is public and the traffic APIs are private.
+curl -fsS --max-time 7 "http://$TARGET/" | grep -q 'id="auditGate"'
+curl -fsS --max-time 7 "http://$TARGET/api/state" | \
+  python3 -c 'import json,sys; d=json.load(sys.stdin); assert "cpu" in d and "quota" in d and "interface" in d'
+curl -fsS --max-time 7 "http://$TARGET/api/pings" | \
+  python3 -c 'import json,sys; d=json.load(sys.stdin); assert isinstance(d,list) and len(d)==12'
+PUBLIC_AUDIT_CODE=$(curl -sS -o /dev/null -w '%{http_code}' \
+  --max-time 7 "http://$TARGET/api/flows")
+if [ "$PUBLIC_AUDIT_CODE" != 401 ]; then
+  echo "流量审计接口未正确保护，拒绝切换 9443。" >&2
+  exit 1
+fi
 if [ -f "$CRED" ]; then
-  API_PW=$(sed -n 's/^密码: //p' "$CRED" | head -n 1)
+  API_PW=$(sed -n -e 's/^流量审计密码: //p' -e 's/^密码: //p' "$CRED" | head -n 1)
   if [ -n "$API_PW" ]; then
     curl -fsS --max-time 7 --user "admin:$API_PW" \
-      "http://$TARGET/api/state" | python3 -c 'import json,sys; d=json.load(sys.stdin); assert "cpu" in d and "quota" in d and "interface" in d'
+      "http://$TARGET/api/auth" | \
+      python3 -c 'import json,sys; assert json.load(sys.stdin)["ok"] is True'
     curl -fsS --max-time 7 --user "admin:$API_PW" \
-      "http://$TARGET/api/pings" | python3 -c 'import json,sys; d=json.load(sys.stdin); assert isinstance(d,list) and len(d)==12'
+      "http://$TARGET/api/history" | \
+      python3 -c 'import json,sys; assert isinstance(json.load(sys.stdin),list)'
   fi
 fi
 

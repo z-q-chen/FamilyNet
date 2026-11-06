@@ -487,16 +487,12 @@ class Monitor:
         mem_total, mem_used = memory()
         disk = shutil.disk_usage("/")
         uptime = float(Path("/proc/uptime").read_text().split()[0])
-        since = reset_start(self.cfg.get("reset_day", 0)) or 0
-        baseline_at = int(self.cfg.get("baseline_at") or 0)
-        use_baseline = baseline_at > 0 and (since == 0 or since <= baseline_at)
-        start = max(since, baseline_at) if use_baseline else since
-        values = self.db.execute(
-            "SELECT COALESCE(SUM(drx),0),COALESCE(SUM(dtx),0),MIN(ts) "
-            "FROM traffic WHERE ts>?", (start,)
-        )[0]
-        up_total = int(values[1]) + (int(self.cfg.get("baseline_up") or 0) if use_baseline else 0)
-        down_total = int(values[0]) + (int(self.cfg.get("baseline_down") or 0) if use_baseline else 0)
+        # The public VPS counter is the interface's current lifetime counter.
+        # It must not depend on this monitor's database start date or a
+        # monthly billing interval. Linux exposes these values directly.
+        up_total = int(tx)
+        down_total = int(rx)
+        first_sample_row = self.db.execute("SELECT MIN(ts) FROM traffic")[0]
         mode = self.cfg.get("quota_mode", "sum")
         used = {"up": up_total, "down": down_total, "max": max(up_total, down_total),
                 "sum": up_total + down_total, "min": min(up_total, down_total)}.get(mode, up_total + down_total)
@@ -509,8 +505,8 @@ class Monitor:
             "rxps": rxps, "txps": txps, "up_total": up_total,
             "down_total": down_total, "used": used,
             "quota": float(self.cfg["quota_gib"]) * 1024**3,
-            "quota_mode": mode, "first_sample": values[2],
-            "baseline_source": self.cfg.get("baseline_source", ""),
+            "quota_mode": mode, "first_sample": first_sample_row[0],
+            "counter_source": "interface_since_boot",
             "reset_day": self.cfg.get("reset_day", 0),
             "price_usd": self.cfg.get("price_usd"),
             "price_cycle_months": self.cfg.get("price_cycle_months"),

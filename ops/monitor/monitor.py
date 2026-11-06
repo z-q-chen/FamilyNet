@@ -79,6 +79,37 @@ def make_config(password):
                     {"id": int(i), "name": n, "target": t, "interval": int(iv)}
                     for i, n, _, t, iv in sorted(data)
                 ]
+            try:
+                c.row_factory = sqlite3.Row
+                node = c.execute("SELECT * FROM nodes LIMIT 1").fetchone()
+                if node:
+                    fields = dict(node)
+                    quota = fields.get("traffic_limit")
+                    if quota is not None and float(quota) > 0:
+                        result["quota_gib"] = round(float(quota) / 1024**3, 4)
+                    mode = fields.get("traffic_limit_type")
+                    if mode in ("sum", "up", "down", "max"):
+                        result["quota_mode"] = mode
+                    price = fields.get("price")
+                    if price is not None and float(price) > 0:
+                        result["price_usd"] = float(price)
+                    cycle = fields.get("billing_cycle")
+                    if cycle is not None and 27 <= int(cycle) <= 370:
+                        result["price_cycle_months"] = max(1, round(int(cycle) / 30))
+                    expiry = fields.get("expired_at") or fields.get("expires_at")
+                    if expiry:
+                        if isinstance(expiry, (int, float)):
+                            stamp = float(expiry)
+                            if stamp > 1e11:
+                                stamp /= 1000
+                            result["expires_at"] = datetime.fromtimestamp(stamp).isoformat()
+                        else:
+                            result["expires_at"] = str(expiry)
+                    day = fields.get("traffic_reset_day") or fields.get("traffic_limit_reset_day")
+                    if day is not None and 1 <= int(day) <= 31:
+                        result["reset_day"] = int(day)
+            except (sqlite3.Error, ValueError, TypeError, OverflowError):
+                pass
             c.close()
         except (sqlite3.Error, ValueError):
             pass
@@ -186,15 +217,10 @@ class Store:
                               (int(time.time()) - 86400,))
             self.conn.execute("DELETE FROM flows WHERE last_ts<?",
                               (int(time.time()) - 86400,))
-            # Keep minute history for 7 days and hourly history for months:
-            # Every tenth minute from older periods is intentionally retained.
-            limit = int(time.time()) - 7 * 86400
-            self.conn.execute(
-                "DELETE FROM traffic WHERE ts<? AND ts%3600>=60",
-                (limit - 86400 * 120,)
-            )
+            # Retain original deltas; discarding intermediate deltas would
+            # undercount totals when querying a time range.
             self.conn.execute("DELETE FROM traffic WHERE ts<?",
-                              (int(time.time()) - 180 * 86400,))
+                              (int(time.time()) - 120 * 86400,))
 
     def save_flows(self, rows):
         now = int(time.time())

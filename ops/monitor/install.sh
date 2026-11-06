@@ -165,7 +165,8 @@ if [ "$READY" -ne 1 ]; then
   exit 1
 fi
 # Verify the overview is public and the traffic APIs are private.
-curl -fsS --max-time 7 "http://$TARGET/" | grep -q 'id="auditGate"'
+curl -fsS --max-time 7 "http://$TARGET/" | \
+  python3 -c 'import sys; assert "id=\"auditGate\"" in sys.stdin.read()'
 curl -fsS --max-time 7 "http://$TARGET/api/state" | \
   python3 -c 'import json,sys; d=json.load(sys.stdin); assert "cpu" in d and "quota" in d and "interface" in d'
 curl -fsS --max-time 7 "http://$TARGET/api/pings" | \

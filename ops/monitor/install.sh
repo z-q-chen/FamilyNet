@@ -137,6 +137,15 @@ if [ "$READY" -ne 1 ]; then
   echo "新监控未通过检查，9443 保持原配置。" >&2
   exit 1
 fi
+if [ -f "$CRED" ]; then
+  API_PW=$(sed -n 's/^密码: //p' "$CRED" | head -n 1)
+  if [ -n "$API_PW" ]; then
+    curl -fsS --max-time 7 --user "admin:$API_PW" \
+      "http://$TARGET/api/state" | python3 -c 'import json,sys; d=json.load(sys.stdin); assert "cpu" in d and "quota" in d and "interface" in d'
+    curl -fsS --max-time 7 --user "admin:$API_PW" \
+      "http://$TARGET/api/pings" | python3 -c 'import json,sys; d=json.load(sys.stdin); assert isinstance(d,list) and len(d)==12'
+  fi
+fi
 
 # Change only one known Komari reverse-proxy target. Unknown Caddy layouts abort.
 CUTOVER=1

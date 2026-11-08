@@ -387,11 +387,33 @@ function renderPings(data){
     {name:"江苏",id:"jiangsu",v4:[39,27,28],v6:[40,30,31]},
     {name:"河北",id:"hebei",v4:[38,32,33],v6:[34,35,36]}
   ],carriers=["电信","联通","移动"];
-  var mostRecentTs=0;
-  data.forEach(function(t){var h=t.history||[];if(h.length)mostRecentTs=Math.max(mostRecentTs,Number(h[h.length-1].ts)||0)});
-  // Show the last 48 completed half-hour rounds. Time does not slide until a new probe is saved.
-  var lastRound=mostRecentTs||Math.floor(Date.now()/1800000)*1800;
-  var columnCount=48;
+  // One column per completed 30-minute probe round; preserve exactly 48 columns.
+  // Historic asynchronous samples within ten minutes belong to the same round.
+  var times=[];
+  data.forEach(function(t){
+    (t.history||[]).forEach(function(q){
+      if(Number.isFinite(Number(q.ts)))times.push(Number(q.ts));
+    });
+  });
+  times.sort(function(a,b){return a-b});
+  var roundTimes=[];
+  times.forEach(function(ts){
+    if(!roundTimes.length||ts-roundTimes[roundTimes.length-1]>600)roundTimes.push(ts);
+  });
+  roundTimes=roundTimes.slice(-48);
+  var columnCount=48,offset=48-roundTimes.length;
+  function roundIndex(ts){
+    var best=-1,gap=Infinity;
+    roundTimes.forEach(function(start,i){
+      var d=Math.abs(Number(ts)-start);
+      if(d<gap){gap=d;best=i}
+    });
+    return gap<=600?offset+best:-1;
+  }
+  function slotTimestamp(index){
+    if(index>=offset)return roundTimes[index-offset];
+    return roundTimes.length?roundTimes[0]-(offset-index)*1800:0;
+  }
   function classifyDelay(v,ok){
     if(!ok||!Number.isFinite(Number(v)))return "l5";
     v=Number(v);
@@ -415,10 +437,10 @@ function renderPings(data){
     var latencyText=last?(lat===null?"超时":lat.toFixed(1)+" ms"):"—";
     var lossText=loss===null?"—":loss.toFixed(1)+"%";
     var slots=new Array(columnCount).fill(null);
-    h.forEach(function(q){var idx=columnCount-1+Math.round((Number(q.ts)-lastRound)/1800);if(idx>=0&&idx<columnCount)slots[idx]=q});
+    h.forEach(function(q){var idx=roundIndex(q.ts);if(idx>=0&&idx<columnCount)slots[idx]=q});
     var upper="",lower="";
     slots.forEach(function(q,i){
-      var slotTime=time(lastRound-(columnCount-1-i)*1800);
+      var slotTime=time(slotTimestamp(i));
       if(!q){upper+='<i class="unknown" title="'+escape(slotTime)+' · 无数据"></i>';lower+='<i class="unknown" title="'+escape(slotTime)+' · 无数据"></i>';return}
       var lp=q.loss==null?(q.ok?0:100):Math.max(0,Math.min(100,Number(q.loss)));
       var delayTitle=slotTime+" · "+(q.ok?q.latency+" ms":"超时");

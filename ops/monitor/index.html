@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="color-scheme" content="light">
-<title>洛杉矶 VPS 监控 · FamilyNet</title>
+<title>FamilyNet</title>
 <style>
 
 :root{color-scheme:light;--bg:#f3f5f8;--paper:#fff;--ink:#273244;--muted:#8691a0;--line:#e8edf2;--blue:#569bdb;--green:#17ae7e;--purple:#9967df;--orange:#ef9344;--gold:#dca632;--red:#df6370;--radius:20px}
@@ -181,18 +181,34 @@ footer{text-align:center;margin:26px 0 0;color:#9aa7b6;font-size:11px}
 @media(max-width:760px){.region-grid,.auditrankgrid{grid-template-columns:1fr}}
 @media(max-width:560px){.monitor{padding:16px 13px}.resource-grid{gap:11px}.hr{margin:13px 0}.speed-label b{font-size:16px}.bottom-meta{gap:8px}.region{padding:13px}.auditcard{padding:14px}.trendcard .stat{padding:8px 5px}.trendcard .stat b{font-size:15px}.chartwrap svg{height:160px}.chartwrap{min-height:160px}.nav button{padding:7px 8px}}
 
+
+/* FamilyNet: compact UI and 3-level connection quality */
+.chips,.brandhint,.ping-titlebar .hint,.ping-titlebar .key,
+.region-title small,.quota-meta span:last-child,footer{display:none!important}
+.resource-grid{margin-top:18px}
+.resource:first-child .res-sub,.resource:last-child .res-sub{visibility:hidden}
+.segment-track{margin-top:8px}
+.probe-gridline{grid-template-columns:minmax(0,1fr)}
+.probe-gridline .gr-label{display:none}
+.cells .l1,.cells .p0{background:#22ad82}
+.cells .l2,.cells .p2{background:#e8b542}
+.cells .l3,.cells .p4{background:#e36168}
+.probe-values strong.l1,.probe-values strong.p0{color:#199c78}
+.probe-values strong.l2,.probe-values strong.p2{color:#bb8b17}
+.probe-values strong.l3,.probe-values strong.p4{color:#d4555c}
+.auth-username{position:absolute;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none}
 </style>
 </head>
 <body>
 <header class="topbar">
- <div class="brand"><span class="brandmark">▣</span><div><div class="brandname">FamilyNet Monitor</div><div class="brandhint" id="report">正在连接</div></div></div>
- <nav class="nav" role="tablist" aria-label="监控页面"><button data-tab="home" class="active" type="button" aria-selected="true">VPS 监控</button><button data-tab="audit" type="button" aria-selected="false">流量分析</button></nav>
+ <div class="brand"><span class="brandmark">▣</span><div><div class="brandname">FamilyNet</div><div class="brandhint" id="report">正在连接</div></div></div>
+ <nav class="nav" role="tablist" aria-label="监控页面"><button data-tab="home" class="active" type="button" aria-selected="true">概览</button><button data-tab="audit" type="button" aria-selected="false">流量分析</button></nav>
 </header>
 <div class="page">
 <section id="home">
  <article class="card monitor">
   <div class="titleline">
-   <div class="identity"><span class="flag">🇺🇸</span><h1 id="serverName">洛杉矶 VPS</h1></div>
+   <div class="identity"><span class="flag">🇺🇸</span><h1 id="serverName">FamilyNet</h1></div>
    <span class="online"><i class="dot" id="dot"></i><span id="activity">连接中</span></span>
   </div>
   <div class="chips"><span class="chip">US;VPS</span><span class="chip ip">V4</span><span class="chip ip">V6</span><span class="chip plan">FamilyNet</span></div>
@@ -207,12 +223,12 @@ footer{text-align:center;margin:26px 0 0;color:#9aa7b6;font-size:11px}
    <div class="speedcard">
     <div class="speed-label"><span class="arrow">↑</span> 上行 <b id="netUp">—</b></div>
     <div class="activity-dots" id="upDots"></div>
-    <div class="traffic-row"><span><span class="globe">◎</span> 出站 · 本周期</span><b id="totalUp">—</b></div>
+    <div class="traffic-row"><span><span class="globe">◎</span> 出站</span><b id="totalUp">—</b></div>
    </div>
    <div class="speedcard">
     <div class="speed-label"><span class="arrow">↓</span> 下行 <b id="netDown">—</b></div>
     <div class="activity-dots" id="downDots"></div>
-    <div class="traffic-row"><span><span class="globe">◎</span> 入站 · 本周期</span><b id="totalDown">—</b></div>
+    <div class="traffic-row"><span><span class="globe">◎</span> 入站</span><b id="totalDown">—</b></div>
    </div>
   </div>
   <hr class="hr">
@@ -224,11 +240,11 @@ footer{text-align:center;margin:26px 0 0;color:#9aa7b6;font-size:11px}
    <div class="item"><span class="k">在线时间</span><span class="v" id="uptime">—</span></div>
    <div class="item"><span class="k">距离到期</span><span class="v" id="expire">—</span></div>
    <div class="item"><span class="k">套餐价格</span><span class="v" id="price">—</span></div>
-   <div class="item"><span class="k">剩余价值 · <span id="interface">—</span></span><span class="v" id="valueLeft">—</span></div>
+   <div class="item"><span class="k">剩余价值</span><span class="v" id="valueLeft">—</span></div>
   </div>
  </article>
  <div class="ping-titlebar">
-  <div><h2>线路质量 · 12 组</h2><div class="hint">24 小时 · 30 分钟/格 · 延迟 / 失败率</div></div>
+  <div><h2>线路监测</h2><div class="hint">24 小时 · 30 分钟/格 · 延迟 / 失败率</div></div>
   <div class="key"><span><i></i>延迟</span><span><i class="loss"></i>正常</span><span><i class="missing"></i>无数据</span></div>
  </div>
  <div class="region-grid" id="pinggrid"><div class="card region"><div class="empty">正在加载线路检测历史…</div></div></div>
@@ -237,7 +253,7 @@ footer{text-align:center;margin:26px 0 0;color:#9aa7b6;font-size:11px}
 <section id="audit" hidden>
  <div id="auditGate" class="card auditgate">
   <div class="lock" aria-hidden="true">🔒</div><h3>流量分析</h3><p>输入密码查看网络访问与历史记录</p>
-  <form id="auditLoginForm" autocomplete="off"><div class="authrow"><input id="auditPassword" type="password" placeholder="流量分析密码" aria-label="流量分析密码" required autocomplete="off"><button type="submit">解锁</button></div><p class="autherror" id="authError" role="alert"></p></form>
+  <form id="auditLoginForm" autocomplete="on"><input class="auth-username" type="text" name="username" autocomplete="username" value="admin" readonly tabindex="-1" aria-hidden="true"><div class="authrow"><input id="auditPassword" name="password" type="password" placeholder="流量分析密码" aria-label="流量分析密码" required autocomplete="current-password"><button type="submit">解锁</button></div><p class="autherror" id="authError" role="alert"></p></form>
  </div>
  <div id="auditContent" hidden>
   <div class="between audit-top"><h2>流量分析</h2><div class="auditbar"><button data-hours="1" class="range" type="button">1 小时</button><button data-hours="24" class="range active" type="button">24 小时</button><button data-hours="168" class="range" type="button">7 天</button><button data-hours="720" class="range" type="button">30 天</button></div></div>
@@ -269,7 +285,7 @@ footer{text-align:center;margin:26px 0 0;color:#9aa7b6;font-size:11px}
   </div>
  </div>
 </section>
-<footer>FamilyNet Monitor</footer>
+<footer>FamilyNet</footer>
 </div>
 <script>
 (function(){
@@ -291,9 +307,9 @@ function showAuditGate(){auditAuth="";stampAudit=0;selectedRange=null;rankReques
 async function unlockAudit(password){auditAuth=authHeader(password);try{await api("/api/state?audit=auth",true);el("auditGate").hidden=true;el("auditContent").hidden=false;el("auditPassword").value="";text("authError","");stampAudit=0;refresh()}catch(e){auditAuth="";el("auditPassword").value="";text("authError",e.authFailure?"密码错误":"连接验证接口失败，请检查网络")}}
 function setActive(status){el("dot").classList.toggle("off",!status);text("activity",status?"已连接":"连接异常")}
 function renderState(s){
-  text("serverName",s.title||s.hostname||"洛杉矶 VPS");
+  text("serverName","FamilyNet");
   text("report","最近更新 "+time(s.time));
-  document.title=(s.title||"洛杉矶 VPS")+" · FamilyNet";
+  document.title="FamilyNet";
   uptimeAnchor={seconds:Number(s.uptime)||0,at:performance.now()};
   text("uptime",days(s.uptime));
   text("cpu",s.cpu===null?"—":Number(s.cpu).toFixed(2)+"%");
@@ -328,20 +344,19 @@ function renderPings(data){
     {name:"江苏",id:"jiangsu",v4:[39,27,28],v6:[40,30,31]},
     {name:"河北",id:"hebei",v4:[38,32,33],v6:[34,35,36]}
   ],carriers=["电信","联通","移动"];
-  var epoch=Math.floor(Date.now()/1800000);
+  var mostRecentTs=0;
+  data.forEach(function(t){var h=t.history||[];if(h.length)mostRecentTs=Math.max(mostRecentTs,Number(h[h.length-1].ts)||0)});
+  var epoch=Math.floor((mostRecentTs||Date.now()/1000)/1800);
   function classifyDelay(v,ok){
-    if(!ok)return "l5";
-    if(v<95)return "l1";
-    if(v<185)return "l2";
-    if(v<240)return "l3";
-    if(v<320)return "l4";
-    return "l5";
+    if(!ok||!Number.isFinite(Number(v)))return "l3";
+    if(Number(v)<=180)return "l1";
+    if(Number(v)<=220)return "l2";
+    return "l3";
   }
   function classifyLoss(p){
+    if(!Number.isFinite(Number(p)))return "p4";
     if(p<=0)return "p0";
-    if(p<=20)return "p1";
-    if(p<=40)return "p2";
-    if(p<=60)return "p3";
+    if(p<=20)return "p2";
     return "p4";
   }
   function probeHTML(t,name){
@@ -364,7 +379,7 @@ function renderPings(data){
     });
     return '<div class="probe" title="'+escape(t.target)+'">'+
       '<div class="probe-head"><span class="probe-name">'+escape(name)+'</span>'+
-      '<span class="probe-values"><strong>'+latencyText+'</strong><strong class="lossvalue" style="'+(loss>0?'color:#dc6771':'')+'">'+lossText+'<small> 失败</small></strong></span></div>'+
+      '<span class="probe-values"><strong class="'+(lat===null?'':classifyDelay(lat,true))+'">'+latencyText+'</strong><strong class="lossvalue '+(loss===null?'':classifyLoss(loss))+'">'+lossText+'</strong></span></div>'+
       '<div class="probe-gridline"><span class="gr-label">延迟</span><div class="cells">'+upper+'</div></div>'+
       '<div class="probe-gridline"><span class="gr-label">丢包</span><div class="cells">'+lower+'</div></div>'+
     '</div>';

@@ -4,7 +4,7 @@ set -Eeuo pipefail
 umask 077
 [ "$(id -u)" -eq 0 ] || { echo "请使用 sudo bash 运行" >&2; exit 1; }
 APP=/opt/familynet-monitor
-PIN=6cd4ef277b467f59b7012c168e7c8d558f13af77
+PIN=3c887541efdd1be9e73221c292e9f80287b046c3
 BASE="https://raw.githubusercontent.com/z-q-chen/FamilyNet/$PIN/ops/monitor"
 TMP=$(mktemp -d)
 CHANGED=0
@@ -100,8 +100,10 @@ for cls_name, name in (("Store", "cleanup"), ("Monitor", "pings")):
 ast.parse(patched)
 assert "store.ping_batch(readings)" in patched
 assert "ThreadPoolExecutor(max_workers=len(tasks)" in patched
-assert '"history": by_id.get(str(task["id"]), [])[-48:]' in patched
-assert "(int(time.time()) - 48 * 3600,)" in patched
+assert "if len(rounds) > 48:" in patched
+assert "DELETE FROM pings WHERE ts < ?" in patched
+assert "DELETE FROM pings WHERE ts<?" not in patched
+assert "since = int(time.time()) - 48 * 3600" not in patched
 Path(sys.argv[3]).write_text(patched, encoding="utf-8")
 PY
 
@@ -134,5 +136,5 @@ done
 [ "$OK" = 1 ] || { echo "健康检查未通过" >&2; exit 1; }
 
 SUCCESS=1
-echo "FamilyNet 已更新：每轮 12 组同步检测，固定 48 格历史仅在新结果产生时平移。"
+echo "FamilyNet 已更新：12 组探针共用一个 48 轮 SQLite 队列；仅新一轮完成时平移。"
 echo "原有记录、密码及其他本地 Python 修改均保留。"

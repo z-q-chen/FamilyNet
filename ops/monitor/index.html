@@ -389,18 +389,9 @@ function renderPings(data){
   ],carriers=["电信","联通","移动"];
   var mostRecentTs=0;
   data.forEach(function(t){var h=t.history||[];if(h.length)mostRecentTs=Math.max(mostRecentTs,Number(h[h.length-1].ts)||0)});
-  var epoch=Math.floor((mostRecentTs||Date.now()/1000)/1800);
-  // Trim only columns with no sample from ANY probe at the start of the shared timeline.
-  // Keep internal gaps visible instead of inventing measurements.
-  var firstEpoch=epoch-47,earliest=Infinity;
-  data.forEach(function(t){
-    (t.history||[]).forEach(function(q){
-      var bucket=Math.floor(Number(q.ts)/1800);
-      if(bucket>=firstEpoch&&bucket<=epoch)earliest=Math.min(earliest,bucket);
-    });
-  });
-  if(Number.isFinite(earliest))firstEpoch=earliest;
-  var columnCount=epoch-firstEpoch+1;
+  // Show the last 48 completed half-hour rounds. Time does not slide until a new probe is saved.
+  var lastRound=mostRecentTs||Math.floor(Date.now()/1800000)*1800;
+  var columnCount=48;
   function classifyDelay(v,ok){
     if(!ok||!Number.isFinite(Number(v)))return "l5";
     v=Number(v);
@@ -424,10 +415,10 @@ function renderPings(data){
     var latencyText=last?(lat===null?"超时":lat.toFixed(1)+" ms"):"—";
     var lossText=loss===null?"—":loss.toFixed(1)+"%";
     var slots=new Array(columnCount).fill(null);
-    h.forEach(function(q){var idx=Math.floor(q.ts/1800)-firstEpoch;if(idx>=0&&idx<columnCount)slots[idx]=q});
+    h.forEach(function(q){var idx=columnCount-1+Math.round((Number(q.ts)-lastRound)/1800);if(idx>=0&&idx<columnCount)slots[idx]=q});
     var upper="",lower="";
     slots.forEach(function(q,i){
-      var slotTime=time((firstEpoch+i)*1800);
+      var slotTime=time(lastRound-(columnCount-1-i)*1800);
       if(!q){upper+='<i class="unknown" title="'+escape(slotTime)+' · 无数据"></i>';lower+='<i class="unknown" title="'+escape(slotTime)+' · 无数据"></i>';return}
       var lp=q.loss==null?(q.ok?0:100):Math.max(0,Math.min(100,Number(q.loss)));
       var delayTitle=slotTime+" · "+(q.ok?q.latency+" ms":"超时");
@@ -437,8 +428,8 @@ function renderPings(data){
     return '<div class="probe" title="'+escape(t.target)+'">'+
       '<div class="probe-head"><span class="probe-name">'+escape(name)+'</span>'+
       '<span class="probe-values"><strong class="'+(lat===null?'':classifyDelay(lat,true))+'">'+latencyText+'</strong><strong class="lossvalue '+(loss===null?'':classifyLoss(loss))+'">'+lossText+'</strong></span></div>'+
-      '<div class="probe-gridline"><span class="gr-label">延迟</span><div class="cells" style="grid-template-columns:repeat('+columnCount+',minmax(0,1fr))">'+upper+'</div></div>'+
-      '<div class="probe-gridline"><span class="gr-label">连接</span><div class="cells" style="grid-template-columns:repeat('+columnCount+',minmax(0,1fr))">'+lower+'</div></div>'+
+      '<div class="probe-gridline"><span class="gr-label">延迟</span><div class="cells">'+upper+'</div></div>'+
+      '<div class="probe-gridline"><span class="gr-label">连接</span><div class="cells">'+lower+'</div></div>'+
     '</div>';
   }
   var out="";

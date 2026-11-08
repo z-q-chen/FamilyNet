@@ -272,6 +272,53 @@ class Store:
             ping_cols = {col[1] for col in self.conn.execute("PRAGMA table_info(pings)")}
             if "loss" not in ping_cols:
                 self.conn.execute("ALTER TABLE pings ADD COLUMN loss REAL")
+            if "round_id" not in ping_cols:
+                self.conn.execute("ALTER TABLE pings ADD COLUMN round_id INTEGER")
+            self.conn.execute(
+                "CREATE INDEX IF NOT EXISTS pings_round_task ON pings(round_id,task_id)"
+            )
+            self.conn.execute(
+                "CREATE TABLE IF NOT EXISTS probe_rounds("
+                "id INTEGER PRIMARY KEY AUTOINCREMENT, ts INTEGER NOT NULL)"
+            )
+            # One-time migration of old samples, preserving the original history.
+            # Only legacy records need timestamp grouping; normal operation uses IDs.
+            legacy = self.conn.execute(
+                "SELECT id,ts FROM pings WHERE round_id IS NULL ORDER BY ts,id"
+            ).fetchall()
+            previous = None
+            current_round = None
+            updates = []
+            for sample_id, ts in legacy:
+                if previous is None or ts - previous > 600:
+                    current_round = self.conn.execute(
+                        "INSERT INTO probe_rounds(ts) VALUES(?)", (ts,)
+                    ).lastrowid
+                    previous = ts
+                updates.append((current_round, sample_id))
+            if updates:
+                self.conn.executemany(
+                    "UPDATE pings SET round_id=? WHERE id=?", updates
+                )
+            self._trim_probe_rounds()
+            last_round = self.conn.execute(
+                "SELECT COALESCE(MAX(id),0) FROM probe_rounds"
+            ).fetchone()
+            self.round_version = last_round[0]
+
+    def _trim_probe_rounds(self):
+        """Expire by FIFO position, not the wall clock."""
+        row = self.conn.execute(
+            "SELECT id FROM probe_rounds ORDER BY id DESC LIMIT 1 OFFSET 47"
+        ).fetchone()
+        if row:
+            keep_from = row[0]
+            self.conn.execute(
+                "DELETE FROM pings WHERE round_id < ?", (keep_from,)
+            )
+            self.conn.execute(
+                "DELETE FROM probe_rounds WHERE id < ?", (keep_from,)
+            )
 
     def monthly_count(self, cycle_start, rx, tx, current_boot, now):
         """Accumulate post-reset bytes, surviving monitor restarts and reboots."""
@@ -321,34 +368,25 @@ class Store:
             )
 
     def ping(self, task, latency, ok, loss=None):
-        with self.lock, self.conn:
-            self.conn.execute(
-                "INSERT INTO pings(ts,task_id,latency,ok,loss) VALUES(?,?,?,?,?)",
-                (int(time.time()), task, latency, 1 if ok else 0, loss)
-            )
+        """Legacy helper; all new monitor samples use complete batches."""
+        self.ping_batch([(int(time.time()), task, latency, 1 if ok else 0, loss)])
 
     def ping_batch(self, readings):
-        """Push one complete 12-probe round into a persistent 48-round FIFO."""
+        """Atomically append one probe round and keep only the latest 48."""
         if not readings:
             return
+        round_ts = int(readings[0][0])
         with self.lock, self.conn:
+            round_id = self.conn.execute(
+                "INSERT INTO probe_rounds(ts) VALUES(?)", (round_ts,)
+            ).lastrowid
             self.conn.executemany(
-                "INSERT INTO pings(ts,task_id,latency,ok,loss) VALUES(?,?,?,?,?)",
-                readings
+                "INSERT INTO pings(ts,task_id,latency,ok,loss,round_id) "
+                "VALUES(?,?,?,?,?,?)",
+                [(*row, round_id) for row in readings]
             )
-            # For legacy data, probe timestamps within ten minutes belong
-            # to the same round. New synchronized batches share one timestamp.
-            # Expire by number of rounds, never by elapsed wall-clock hours.
-            stamps = [row[0] for row in self.conn.execute(
-                "SELECT ts FROM pings ORDER BY ts,id"
-            )]
-            rounds = []
-            for ts in stamps:
-                if not rounds or ts - rounds[-1] > 600:
-                    rounds.append(ts)
-            if len(rounds) > 48:
-                self.conn.execute("DELETE FROM pings WHERE ts < ?",
-                                  (rounds[-48],))
+            self._trim_probe_rounds()
+            self.round_version = round_id
 
     def cleanup(self):
         with self.lock, self.conn:
@@ -623,18 +661,12 @@ def capture_flows():
 
 
 def collector_loop(store, cfg):
+    """Slow disk/connection capture; independent from dashboard refresh."""
     last_clean = 0
     while not STOP.is_set():
         started = time.monotonic()
         try:
             store.sample(cfg["interface"])
-            first_reset = int(cfg.get("first_reset_at") or 0)
-            day = int(cfg.get("reset_day") or 0)
-            if first_reset and day:
-                cycle_start, _ = monthly_start_utc(time.time(), day, first_reset)
-                if cycle_start is not None:
-                    rx, tx = read_iface(cfg["interface"])
-                    store.monthly_count(cycle_start, rx, tx, boot_id(), time.time())
             records, source = capture_flows()
             store.save_flows(records, source)
             if time.time() - last_clean > 3600:
@@ -645,6 +677,15 @@ def collector_loop(store, cfg):
         STOP.wait(max(1, int(cfg.get("sample_seconds", 30)) - (time.monotonic() - started)))
 
 
+def state_loop(app):
+    """One shared live sample every 3 seconds; HTTP requests only read it."""
+    while not STOP.is_set():
+        started = time.monotonic()
+        try:
+            app.sample_state()
+        except Exception as exc:
+            print("state:", type(exc).__name__, str(exc), flush=True)
+        STOP.wait(max(0.25, 3 - (time.monotonic() - started)))
 
 
 # PTR names and well-established provider ranges are only identification hints.
@@ -881,11 +922,12 @@ class Monitor:
         self.last_ticks = None
         self.last_live = None
         self.live_lock = threading.Lock()
+        self.cached_state = {"time": 0, "round_id": self.db.round_version}
         self.db.last_flow_source = "starting"
         self.db.last_flow_count = 0
         self.db.last_flow_at = None
 
-    def state(self):
+    def sample_state(self):
         now = time.time()
         total, idle = cpu_ticks()
         rx, tx = read_iface(self.cfg["interface"])
@@ -929,7 +971,7 @@ class Monitor:
                 "max": max(cycle_up, cycle_down),
                 "sum": cycle_up + cycle_down,
                 "min": min(cycle_up, cycle_down)}.get(mode, cycle_up + cycle_down)
-        return {
+        snapshot = {
             "time": int(now), "hostname": socket.gethostname(),
             "interface": self.cfg["interface"],
             "uptime": uptime, "cpu": cpu, "cpu_cores": os.cpu_count() or 0,
@@ -948,7 +990,15 @@ class Monitor:
             "title": self.cfg.get("title", "洛杉矶 VPS 监控"),
             "refresh_seconds": self.cfg.get("refresh_seconds", 5),
             "load": [round(n, 2) for n in os.getloadavg()],
+            "round_id": self.db.round_version,
         }
+        with self.live_lock:
+            self.cached_state = snapshot
+        return snapshot
+
+    def state(self):
+        with self.live_lock:
+            return dict(self.cached_state)
 
     def history(self, hours):
         start = int(time.time()) - hours * 3600
@@ -964,20 +1014,33 @@ class Monitor:
         return [{"ts": ts, "up": up, "down": down} for ts, up, down in data]
 
     def pings(self):
-        # Stored samples already form a rolling 48-round FIFO. Do not apply
-        # another wall-clock cutoff or let each target shift independently.
-        data = self.db.execute(
-            "SELECT task_id,ts,latency,ok,loss FROM pings ORDER BY ts,id"
-        )
+        """Return explicit batch IDs, never reconstruct rounds from timestamps."""
+        rounds = self.db.execute(
+            "SELECT id,ts FROM probe_rounds ORDER BY id DESC LIMIT 48"
+        )[::-1]
+        rows = self.db.execute(
+            "SELECT round_id,task_id,ts,latency,ok,loss FROM pings "
+            "WHERE round_id >= ? ORDER BY round_id,id",
+            (rounds[0][0],) if rounds else (0,)
+        ) if rounds else []
         by_id = {}
-        for task, ts, latency, ok, loss in data:
+        for rid, task, ts, latency, ok, loss in rows:
             by_id.setdefault(str(task), []).append(
-                {"ts": ts, "latency": latency, "ok": bool(ok),
-                 "loss": round(float(loss), 1) if loss is not None else (0.0 if ok else 100.0)}
+                {"round_id": rid, "ts": ts, "latency": latency,
+                 "ok": bool(ok),
+                 "loss": round(float(loss), 1) if loss is not None
+                         else (0.0 if ok else 100.0)}
             )
-        return [{"id": task["id"], "name": task["name"], "target": task["target"],
+        return {
+            "round_id": rounds[-1][0] if rounds else 0,
+            "rounds": [{"id": rid, "ts": ts} for rid, ts in rounds],
+            "targets": [
+                {"id": task["id"], "name": task["name"],
+                 "target": task["target"],
                  "history": by_id.get(str(task["id"]), [])}
-                for task in self.cfg["targets"]]
+                for task in self.cfg["targets"]
+            ],
+        }
 
     def resolved_names(self, ips):
         now = int(time.time())
@@ -1164,12 +1227,15 @@ def main():
         return
     cfg = ensure_billing_schedule(json.loads(CONFIG.read_text()))
     app = Monitor(cfg)
+    app.sample_state()
     if opts.import_komari:
         migrate_komari(app)
         return
     if opts.check:
         print(json.dumps(app.state(), ensure_ascii=False))
         return
+    threading.Thread(target=state_loop, args=(app,),
+                     daemon=True, name="fn-state").start()
     threading.Thread(target=collector_loop, args=(app.db, cfg),
                      daemon=True, name="fn-collector").start()
     threading.Thread(target=ping_loop, args=(app.db, cfg["targets"]),

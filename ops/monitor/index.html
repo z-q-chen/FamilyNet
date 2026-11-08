@@ -301,94 +301,132 @@ th{color:#a6b6c6}
 .authrow button:hover{background:#4e7fa7}
 .empty{color:#9eadbc}
 
-/* Readable three-section overview: resource, traffic, basics. */
+
+/* FamilyNet fixed-density landscape dashboard, no fake subtitles. */
 .icon-definitions{position:absolute;width:0;height:0;overflow:hidden;pointer-events:none}
-.ico{display:inline-block;width:15px;height:15px;flex:none;vertical-align:-.18em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
-.brandmark .ico{width:19px;height:19px}.server-icon{display:inline-grid;place-items:center;color:#a2c8e8}
-.server-icon .ico{width:20px;height:20px}.server-plan{font-size:12px;font-weight:600;color:#9fb2c5;white-space:nowrap}
-.topbar{max-width:1450px;padding:9px 20px}.brandmark{width:32px;height:32px;border-radius:9px}.brandname{font-size:15px}
-.nav{padding:4px;gap:4px}.nav button{padding:7px 13px;font-size:12px}
-.page{max-width:1450px;padding:8px 20px 22px}
-.serverline{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 2px 13px}
-.identity{display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-width:0}
-.identity h1{font-size:20px;line-height:1.25;margin:0;color:#b1d1eb}.online{font-size:12px}
-.overview-grid{display:grid;grid-template-columns:minmax(0,1.12fr) minmax(0,1.2fr) minmax(0,.95fr);gap:12px;align-items:stretch}
-.overview-card{min-width:0;padding:16px 17px 14px;border-radius:15px;box-shadow:none}
-.panel-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:13px;padding-bottom:10px;border-bottom:1px solid var(--line)}
-.panel-head h2{font-size:14px;font-weight:750;margin:0;color:#deebf3}.panel-note{font-size:10px;color:#93aabc;white-space:nowrap}
-.resource-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:17px 16px;margin:0}
-.res-head span{font-size:12px;gap:6px}.res-head .ico{width:14px;height:14px;color:#92b0c5}
-.res-head b{font-size:16px}.res-sub{height:auto;min-height:16px;font-size:10px;margin-top:5px}
-.segment-track{height:8px;gap:2px;margin-top:7px}
-.speedgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
-.speed-label{font-size:12px;gap:6px;color:#b2c3d1}.speed-label b{font-size:17px;color:#dce9f1;white-space:nowrap}
-.speed-label .arrow{width:15px;height:15px}.activity-dots{margin:10px 0 9px;gap:4px}.activity-dots i{height:5px}
-.traffic-row span{font-size:11px}.traffic-row b{font-size:13px;color:#e4edf4}
-.quota-block{margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
-.quota-head .maintext{display:inline-flex;align-items:center;gap:5px;font-size:12px}
-.quota-head .maintext .ico{width:14px;height:14px}.quota-head .remain{font-size:13px}.quota-head .spend{font-size:11px}
-.quota-progress{height:8px;margin:10px 0 7px}.quota-meta{font-size:10px}
+.ico{display:inline-block;width:15px;height:15px;vertical-align:-.18em;flex:none;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.topbar{max-width:1480px;min-height:48px;padding:6px 14px;display:flex;gap:14px;align-items:center;justify-content:space-between}
+.brand{gap:8px;min-width:0}.brandmark{height:30px;width:30px;border-radius:8px}.brandmark .ico{width:19px;height:19px}
+.brandinfo{display:flex;align-items:baseline;gap:12px;min-width:0}
+.brandname{font-size:16px;letter-spacing:-.015em;white-space:nowrap}
+.brandhint{display:block!important;font-size:11px;color:#9cafc1;white-space:nowrap}
+.header-actions{display:flex;align-items:center;gap:15px;flex:none}
+.online{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:#8bceac;white-space:nowrap}
+.nav{padding:3px;gap:3px;border-radius:9px}.nav button{font-size:11px;min-height:30px;padding:6px 12px;border-radius:7px}
+.page{max-width:1480px;padding:5px 14px 14px}
+#home{min-width:0}
+.overview-grid{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1.25fr) minmax(0,.82fr);gap:10px;align-items:stretch}
+.overview-card{min-width:0;padding:10px 13px 9px;border-radius:12px;box-shadow:none}
+.panel-head{border-bottom:1px solid var(--line);margin:0 0 9px;padding:0 0 7px;min-height:24px;display:block}
+.panel-head h2{font-size:13px;font-weight:750;color:#dde8f1;line-height:1.3;margin:0}
+.resource-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:13px;row-gap:12px;margin:0}
+.res-head{gap:4px}.res-head span{font-size:11px;gap:5px;color:#b7c7d5}
+.res-head .ico{width:13px;height:13px;color:#93afc5}
+.res-head b{font-size:14px}
+.res-sub{font-size:10px;height:13px;min-height:0;margin-top:2px;color:#95a9bc}
+.segment-track{height:7px;gap:2px;margin-top:5px}
+.segment-track i{border-radius:2px}
+.speedgrid,.traffic-panel .speedgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.speedcard{min-width:0}
+.speed-label{display:flex;align-items:center;gap:4px;color:#a6bacb;font-size:11px;min-width:0}
+.speed-label .arrow{width:13px;height:13px}
+.speed-label b{margin-left:auto;color:#e0e9f1;font-size:14px;white-space:nowrap}
+.activity-dots,.traffic-panel .activity-dots{margin:6px 0 7px;gap:3px}
+.activity-dots i{height:4px}
+.traffic-row{gap:4px}.traffic-row span{font-size:10px}.traffic-row b{font-size:12px;color:#e2eaf0}
+.quota-block,.traffic-panel .quota-block{border-top:1px solid var(--line);margin-top:10px;padding-top:9px}
+.quota-head{gap:3px}.quota-head .maintext{font-size:11px;display:inline-flex;align-items:center;gap:5px}
+.quota-head .maintext .ico{width:13px;height:13px}.quota-head .remain{font-size:12px}
+.quota-head .spend{font-size:10px;color:#a6b6c7}
+.quota-progress{height:7px;margin:7px 0 4px}
+.quota-meta{display:flex;font-size:10px;color:#95a9bc}
 .bottom-meta{display:grid;grid-template-columns:1fr;gap:0;margin:0}
-.bottom-meta .item,.bottom-meta .item:nth-child(2){display:flex;align-items:baseline;justify-content:space-between;gap:10px;min-width:0;padding:8px 0;border:0;border-bottom:1px solid var(--line)}
-.bottom-meta .item:last-child{border:0}.bottom-meta .k{font-size:11px;margin:0;white-space:nowrap}.bottom-meta .v{font-size:13px;white-space:nowrap}
-.ping-titlebar{margin:15px 2px 9px;gap:14px}.ping-titlebar h2{font-size:17px}
-.probe-legend{grid-template-columns:74px repeat(5,max-content);column-gap:10px;row-gap:5px;font-size:10px}
-.probe-legend-label{font-size:10px}.probe-legend-item i{width:9px;height:9px}
-.region-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-.region{padding:14px 17px 12px;border-radius:15px}.region-title{padding-bottom:9px}.region-title h3{font-size:17px}
-.region-title small{display:inline;color:#93a6b8;font-size:10px}
-.probe{padding:7px 0 8px}.probe.v6-start{border-top:1px solid #425366;padding-top:10px;margin-top:4px}
-.probe-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:5px;line-height:1.3}
-.probe-name{display:inline-flex;align-items:center;gap:9px;font-size:12px}
-.probe-family{display:inline-grid;place-items:center;min-width:28px;padding:2px 5px;border-radius:5px;background:#26394b;color:#97c1e3;font-size:10px;font-weight:750}
-.probe-family.v6{background:#382e47;color:#c1a9df}.probe-carrier{font-weight:700}
-.probe-values{gap:16px}.probe-values strong{font-size:12px}
-.probe-gridline{grid-template-columns:26px minmax(0,1fr);gap:7px;margin:3px 0}.probe-gridline .gr-label{font-size:10px;color:#9eafbe}
-.cells,.cells i{height:8px}.cells{gap:2px}.cells i{border-radius:2px}
-@media(max-width:1320px){
- .traffic-panel .speedgrid{grid-template-columns:1fr;gap:8px}
- .traffic-panel .activity-dots{margin:4px 0 5px}
- .traffic-panel .quota-block{margin-top:9px;padding-top:9px}
+.bottom-meta .item,.bottom-meta .item:nth-child(2){display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 0;border:0;border-bottom:1px solid var(--line);min-width:0}
+.bottom-meta .item:last-child{border:0}.bottom-meta .k{font-size:11px;white-space:nowrap;margin:0}
+.bottom-meta .v{font-size:12px;font-weight:700;white-space:nowrap}
+.ping-titlebar{margin:9px 2px 5px;gap:12px;display:flex;align-items:center;justify-content:space-between;flex-wrap:nowrap}
+.ping-titlebar h2{font-size:16px;white-space:nowrap}
+.probe-legend{display:grid;grid-template-columns:62px repeat(5,max-content);column-gap:9px;row-gap:4px;font-size:9px;color:#a9b7c5}
+.probe-legend-label{font-size:9px}.probe-legend-item{gap:4px;font-size:9px}.probe-legend-item i{width:8px;height:8px}
+.region-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;align-items:start}
+.region{min-width:0;border-radius:12px;padding:10px 13px 9px}
+.region-title{display:flex;align-items:center;padding-bottom:5px;margin-bottom:2px}
+.region-title h3{font-size:15px}
+.region-title small{display:none!important}
+.probe{padding:3px 0 4px;border-bottom:1px solid #293745}
+.probe:last-child{border:0;padding-bottom:0}
+.probe.v6-start{border-top:1px solid #415264;padding-top:6px;margin-top:2px}
+.probe-head{display:flex;align-items:center;justify-content:space-between;gap:8px;line-height:1.2;margin-bottom:2px}
+.probe-name{display:inline-flex;align-items:center;gap:7px;font-size:11px;white-space:nowrap}
+.probe-family{display:inline-grid;place-items:center;min-width:24px;padding:1px 3px;border-radius:4px;background:#293d50;color:#a1c6e7;font-size:9px;font-weight:750}
+.probe-family.v6{background:#382e47;color:#c6afdf}
+.probe-carrier{font-weight:710}
+.probe-values{display:inline-flex;gap:12px;align-items:center;white-space:nowrap}
+.probe-values strong{font-size:11px}
+.probe-gridline{display:grid;grid-template-columns:22px minmax(0,1fr);gap:5px;margin:1px 0}
+.probe-gridline .gr-label{font-size:9px;color:#99adbf}
+.cells{height:7px;gap:2px}.cells i{height:7px;border-radius:1px}
+@media(min-width:901px) and (max-height:720px){
+ .topbar{min-height:42px;padding-top:4px;padding-bottom:4px}
+ .page{padding-top:3px;padding-bottom:7px}
+ .overview-card{padding-top:8px;padding-bottom:7px}
+ .panel-head{margin-bottom:6px;padding-bottom:5px}
+ .resource-grid{row-gap:9px}
+ .ping-titlebar{margin-top:6px;margin-bottom:4px}
+ .region{padding:8px 12px 7px}
+ .region-title{padding-bottom:4px}
+ .probe{padding:2px 0 3px}
+ .probe.v6-start{padding-top:5px;margin-top:2px}
+ .probe-head{margin-bottom:1px}
+ .probe-gridline{margin:1px 0}
 }
-@media(max-width:930px){
- .overview-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.basics-panel{grid-column:1/-1}
+@media(max-width:900px){
+ .page{padding:7px 10px 18px}
+ .overview-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .basics-panel{grid-column:1/-1}
  .bottom-meta{grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
- .bottom-meta .item,.bottom-meta .item:nth-child(2){display:block;border:0;border-right:1px solid var(--line);padding:0 9px 0 0}
- .bottom-meta .item:last-child{border:0}.bottom-meta .k{display:block;margin-bottom:5px}.bottom-meta .v{font-size:12px}
+ .bottom-meta .item,.bottom-meta .item:nth-child(2){display:block;border:0;border-right:1px solid var(--line);padding:0 8px 0 0}
+ .bottom-meta .item:last-child{border:0}.bottom-meta .k{display:block;margin-bottom:5px}
+ .brandinfo{gap:7px}.brandname{font-size:14px}.brandhint{font-size:10px}
+ .header-actions{gap:8px}
 }
-@media(max-width:800px){
- .page{padding:8px 10px 20px}.topbar{padding:9px 11px}.serverline{padding-bottom:10px}
- .identity h1{font-size:17px}.server-plan{font-size:11px}
- .overview-grid{grid-template-columns:1fr;gap:10px}.basics-panel{grid-column:auto}
- .overview-card{padding:14px}.resource-grid{gap:14px}.bottom-meta{grid-template-columns:repeat(2,minmax(0,1fr))}
- .bottom-meta .item,.bottom-meta .item:nth-child(2){border:0;padding:0}
- .ping-titlebar{flex-wrap:wrap;align-items:flex-start;gap:8px}
- .probe-legend{display:flex;flex-direction:column;gap:6px}.probe-legend-row{display:flex;flex-wrap:wrap;gap:5px 10px}
- .probe-legend-label{min-width:74px}.region-grid{grid-template-columns:1fr}.region{padding:13px 14px}
+@media(max-width:720px){
+ .topbar{padding:8px 10px}
+ .brandinfo{display:block}
+ .brandhint{font-size:9px;margin-top:1px}
+ .header-actions{gap:6px}
+ .header-actions .online{display:none}
+ .overview-grid{grid-template-columns:1fr}
+ .basics-panel{grid-column:auto}
+ .bottom-meta{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .bottom-meta .item,.bottom-meta .item:nth-child(2){display:block;padding:0;border:0}
+ .ping-titlebar{flex-wrap:wrap;align-items:flex-start;gap:7px}
+ .probe-legend{display:flex;flex-direction:column;gap:4px}
+ .probe-legend-row{display:flex;flex-wrap:wrap;gap:5px 8px}
+ .probe-legend-label{min-width:62px}
+ .region-grid{grid-template-columns:1fr}
+ .region{padding:10px 11px}
 }
-@media(max-width:480px){
- .serverline{align-items:flex-start}.identity{gap:5px 8px}.identity h1{font-size:15px}
- .server-plan{width:100%;padding-left:28px}.online{font-size:10px}
- .speed-label{font-size:11px}.speed-label b{font-size:14px}.quota-head .spend{font-size:10px}
- .probe-values{gap:10px}.cells{gap:1px}.cells,.cells i{height:9px}
+@media(max-width:420px){
+ .topbar{gap:5px}.brandmark{width:27px;height:27px}
+ .brandname{font-size:12px}
+ .nav button{padding:5px 8px;font-size:10px}
+ .speed-label b{font-size:13px}.quota-head .spend{font-size:9px}
+ .probe-values{gap:8px}.cells{gap:1px}
 }
 </style>
 </head>
 <body>
 <svg class="icon-definitions" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><symbol id="icon-network" viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="6" rx="1.5"/><rect x="2" y="16" width="7" height="6" rx="1.5"/><rect x="15" y="16" width="7" height="6" rx="1.5"/><path d="M12 8v4M5.5 16v-4H19v4"/></symbol><symbol id="icon-server" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="8" rx="2"/><rect x="3" y="13" width="18" height="8" rx="2"/><path d="M7 7h.01M7 17h.01M11 7h7M11 17h7"/></symbol><symbol id="icon-cpu" viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2"/><rect x="9" y="9" width="6" height="6" rx="1"/><path d="M9 1v4M15 1v4M9 19v4M15 19v4M1 9h4M1 15h4M19 9h4M19 15h4"/></symbol><symbol id="icon-memory" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="10" rx="2"/><path d="M6 10v4M10 10v4M14 10v4M18 10v4M5 17v2M9 17v2M13 17v2M17 17v2"/></symbol><symbol id="icon-disk" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 12h18M7 16h.01M11 16h.01"/></symbol><symbol id="icon-gauge" viewBox="0 0 24 24"><path d="M5 19a9 9 0 1 1 14 0M12 12l4-4M8 19h8"/><circle cx="12" cy="12" r="1.5"/></symbol><symbol id="icon-upload" viewBox="0 0 24 24"><path d="M12 16V3M6 9l6-6 6 6M4 16v4h16v-4"/></symbol><symbol id="icon-download" viewBox="0 0 24 24"><path d="M12 3v13M6 10l6 6 6-6M4 18v3h16v-3"/></symbol><symbol id="icon-database" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v7c0 1.7 4 3 9 3s9-1.3 9-3V5M3 12v7c0 1.7 4 3 9 3s9-1.3 9-3v-7"/></symbol><symbol id="icon-lock" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/></symbol></svg>
 <header class="topbar">
- <div class="brand"><span class="brandmark"><svg class="ico" aria-hidden="true"><use href="#icon-network"></use></svg></span><div><div class="brandname">FamilyNet</div><div class="brandhint" id="report">正在连接</div></div></div>
- <nav class="nav" role="tablist" aria-label="监控页面"><button data-tab="home" class="active" type="button" aria-selected="true">概览</button><button data-tab="audit" type="button" aria-selected="false">流量分析</button></nav>
+ <div class="brand"><span class="brandmark"><svg class="ico" aria-hidden="true"><use href="#icon-server"></use></svg></span><div class="brandinfo"><div class="brandname" id="serverName">HHost · 洛杉矶 VPS</div><div class="brandhint" id="planCaption">200 Mbps · 400 GB</div></div></div>
+ <div class="header-actions"><span class="online"><i class="dot" id="dot"></i><span id="activity">连接中</span></span><nav class="nav" role="tablist" aria-label="监控页面"><button data-tab="home" class="active" type="button" aria-selected="true">概览</button><button data-tab="audit" type="button" aria-selected="false">流量分析</button></nav></div>
 </header>
 <div class="page">
 <section id="home">
- <div class="serverline">
-   <div class="identity"><span class="server-icon"><svg class="ico" aria-hidden="true"><use href="#icon-server"></use></svg></span><h1 id="serverName">HHost · 洛杉矶 VPS</h1><span class="server-plan" id="planCaption">200 Mbps · 400 GB</span></div>
-   <span class="online"><i class="dot" id="dot"></i><span id="activity">连接中</span></span>
-  </div>
 <div class="overview-grid" aria-label="服务器状态概览">
  <section class="card overview-card resources-panel" aria-labelledby="resources-title">
-  <div class="panel-head"><h2 id="resources-title">系统资源</h2><span class="panel-note">实时状态</span></div>
+  <div class="panel-head"><h2 id="resources-title">系统资源</h2></div>
   <div class="resource-grid">
    <div class="resource"><div class="res-head"><span><svg class="ico" aria-hidden="true"><use href="#icon-cpu"></use></svg>CPU</span><b id="cpu">—</b></div><div class="res-sub" id="cpuDesc">—</div><div class="segment-track" id="cpuCells"></div></div>
    <div class="resource"><div class="res-head"><span><svg class="ico" aria-hidden="true"><use href="#icon-memory"></use></svg>内存</span><b id="mem">—</b></div><div class="res-sub" id="memDesc">—</div><div class="segment-track" id="memCells"></div></div>
@@ -397,7 +435,7 @@ th{color:#a6b6c6}
   </div>
  </section>
  <section class="card overview-card traffic-panel" aria-labelledby="traffic-title">
-  <div class="panel-head"><h2 id="traffic-title">网络流量</h2><span class="panel-note">速率与套餐额度</span></div>
+  <div class="panel-head"><h2 id="traffic-title">网络流量</h2></div>
   <div class="speedgrid">
    <div class="speedcard">
     <div class="speed-label"><svg class="ico arrow" aria-hidden="true"><use href="#icon-upload"></use></svg>上传速率 <b id="netUp">—</b></div>
@@ -413,11 +451,11 @@ th{color:#a6b6c6}
   <div class="quota-block">
    <div class="quota-head"><div class="maintext"><svg class="ico" aria-hidden="true"><use href="#icon-database"></use></svg>剩余流量 <span class="remain" id="quotaRemaining">—</span></div><div class="spend" id="quotaValue">— / 400 GB</div></div>
   <div class="quota-progress"><div class="fill" id="quotaBar"></div></div>
-  <div class="quota-meta"><span id="quotaHint">本周期</span><span>流量进度</span></div>
+  <div class="quota-meta"><span id="quotaHint">本周期</span></div>
   </div>
  </section>
  <section class="card overview-card basics-panel" aria-labelledby="basics-title">
-  <div class="panel-head"><h2 id="basics-title">基础信息</h2><span class="panel-note">当前套餐</span></div>
+  <div class="panel-head"><h2 id="basics-title">基础信息</h2></div>
   <div class="bottom-meta">
    <div class="item"><span class="k">在线时间</span><span class="v" id="uptime">—</span></div>
    <div class="item"><span class="k">距离到期</span><span class="v" id="expire">—</span></div>
@@ -498,7 +536,7 @@ function bar(id,p){el(id).style.width=Math.max(0,Math.min(100,p)).toFixed(2)+"%"
 function segmented(id,p,type){var n=Math.max(0,Math.min(20,Math.ceil((p||0)/5))),out="";for(var i=0;i<20;i++)out+='<i class="'+(i<n?"filled "+type:"")+'"></i>';el(id).innerHTML=out}
 function dots(id,rate){var n=Math.max(1,Math.min(26,Math.ceil(Math.log2(Math.max(1,rate)/256+1)*3))),out="";for(var i=0;i<26;i++)out+='<i class="'+(i>=26-n?"lit":"")+'"></i>';el(id).innerHTML=out}
 function time(ts){return ts?new Date(ts*1000).toLocaleString("zh-CN",{hour12:false}):"—"}
-function days(sec){var n=Math.max(0,Math.floor(sec||0));return Math.floor(n/86400)+"天 "+String(Math.floor(n%86400/3600)).padStart(2,"0")+":"+String(Math.floor(n%3600/60)).padStart(2,"0")+":"+String(n%60).padStart(2,"0")}
+function days(sec){var n=Math.max(0,Math.floor(sec||0));return (Math.floor(n/86400)?Math.floor(n/86400)+"天":"")+Math.floor(n%86400/3600)+"小时"+Math.floor(n%3600/60)+"分"}
 function escape(s){return String(s===undefined||s===null?"":s).replace(/[&<>"']/g,function(x){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[x]})}
 function authHeader(password){var bytes=new TextEncoder().encode("admin:"+password),v="";bytes.forEach(function(b){v+=String.fromCharCode(b)});return "Basic "+btoa(v)}
 async function api(url,isPrivate){var opts={cache:"no-store",credentials:"same-origin"};if(isPrivate&&auditAuth)opts.headers={Authorization:auditAuth};var r=await fetch(url,opts);if(r.status===401){var err=new Error("unauthorized");err.authFailure=true;throw err}if(!r.ok)throw new Error(String(r.status));return r.json()}
@@ -508,7 +546,7 @@ function setActive(status){el("dot").classList.toggle("off",!status);text("activ
 function renderState(s){
   text("serverName","HHost · 洛杉矶 VPS");
    text("planCaption","200 Mbps · "+(Number(s.quota)>0?Math.round(Number(s.quota)/1073741824)+" GB":"400 GB"));
-  text("report","最近更新 "+time(s.time));
+  
   document.title="HHost · FamilyNet";
   uptimeAnchor={seconds:Number(s.uptime)||0,at:performance.now()};
   text("uptime",days(s.uptime));

@@ -336,30 +336,42 @@ footer{text-align:center;margin:26px 0 0;color:#9aa7b6;font-size:11px}
 
 
 
-/* Small, native and accessible theme selector; layout otherwise unchanged. */
-.topbar-actions{display:flex;align-items:center;gap:10px;min-width:0}
-.theme-mode{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);white-space:nowrap}
-.theme-mode select{font:inherit;font-size:12px;color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:7px 6px;min-height:32px;cursor:pointer}
-.theme-mode select:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
-@media(max-width:560px){
- .topbar-actions{gap:4px}
- .theme-mode{gap:0;font-size:0}
- .theme-mode select{font-size:11px;min-height:30px;padding:6px 3px}
-}
+/* Quiet icon-only theme menu. Never occupies a separate row. */
+.topbar-actions{display:flex;align-items:center;gap:9px;min-width:0}
+.theme-control{position:relative;flex:none}
+.theme-trigger{display:grid;place-items:center;width:35px;height:35px;border:1px solid transparent;border-radius:10px;background:transparent;color:var(--muted);padding:0;transition:background .15s ease,color .15s ease}
+.theme-trigger .ui-icon{width:18px;height:18px;stroke-width:1.8}
+.theme-trigger:hover,.theme-trigger[aria-expanded="true"]{background:var(--line);color:var(--ink)}
+.theme-trigger:focus-visible,.theme-menu button:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.theme-menu{position:absolute;z-index:30;top:calc(100% + 8px);right:0;width:166px;padding:5px;border-radius:12px;background:var(--paper);border:1px solid var(--line);box-shadow:0 14px 32px rgba(25,38,54,.17)}
+.theme-menu button{display:flex;align-items:center;gap:11px;width:100%;padding:10px 10px;border:0;border-radius:8px;background:transparent;color:var(--ink);text-align:left;font-size:12px;font-weight:550}
+.theme-menu button:hover{background:var(--line)}
+.theme-menu button .ui-icon{width:16px;height:16px;color:var(--muted)}
+.theme-menu button .theme-selected{margin-left:auto;font-size:13px;color:var(--blue);opacity:0}
+.theme-menu button[aria-pressed="true"]{color:var(--blue);font-weight:700}
+.theme-menu button[aria-pressed="true"] .theme-selected{opacity:1}
+html[data-effective-theme="dark"] .theme-menu{box-shadow:0 14px 32px rgba(0,0,0,.32)}
+@media(max-width:560px){.topbar-actions{gap:3px}.theme-trigger{width:30px;height:32px}.theme-trigger .ui-icon{width:17px;height:17px}}
+
 </style>
 </head>
 <body>
-<svg class="icon-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><symbol id="i-network" viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="6" rx="1.4"/><rect x="2" y="16" width="7" height="6" rx="1.4"/><rect x="15" y="16" width="7" height="6" rx="1.4"/><path d="M12 8v4M5.5 16v-4H19v4"/></symbol><symbol id="i-cpu" viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2"/><rect x="9" y="9" width="6" height="6" rx="1"/><path d="M9 1v4M15 1v4M9 19v4M15 19v4M1 9h4M1 15h4M19 9h4M19 15h4"/></symbol><symbol id="i-memory" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="10" rx="2"/><path d="M6 10v4M10 10v4M14 10v4M18 10v4M5 17v2M9 17v2M13 17v2M17 17v2"/></symbol><symbol id="i-disk" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 12h18M7 16h.01M11 16h.01"/></symbol><symbol id="i-gauge" viewBox="0 0 24 24"><path d="M5 19a9 9 0 1 1 14 0M12 12l4-4M8 19h8"/><circle cx="12" cy="12" r="1.5"/></symbol><symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V3M6 9l6-6 6 6M4 16v4h16v-4"/></symbol><symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v13M6 10l6 6 6-6M4 18v3h16v-3"/></symbol><symbol id="i-database" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v7c0 1.7 4 3 9 3s9-1.3 9-3V5M3 12v7c0 1.7 4 3 9 3s9-1.3 9-3v-7"/></symbol><symbol id="i-lock" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/></symbol></svg>
+<svg class="icon-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><symbol id="i-network" viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="6" rx="1.4"/><rect x="2" y="16" width="7" height="6" rx="1.4"/><rect x="15" y="16" width="7" height="6" rx="1.4"/><path d="M12 8v4M5.5 16v-4H19v4"/></symbol><symbol id="i-cpu" viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2"/><rect x="9" y="9" width="6" height="6" rx="1"/><path d="M9 1v4M15 1v4M9 19v4M15 19v4M1 9h4M1 15h4M19 9h4M19 15h4"/></symbol><symbol id="i-memory" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="10" rx="2"/><path d="M6 10v4M10 10v4M14 10v4M18 10v4M5 17v2M9 17v2M13 17v2M17 17v2"/></symbol><symbol id="i-disk" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 12h18M7 16h.01M11 16h.01"/></symbol><symbol id="i-gauge" viewBox="0 0 24 24"><path d="M5 19a9 9 0 1 1 14 0M12 12l4-4M8 19h8"/><circle cx="12" cy="12" r="1.5"/></symbol><symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V3M6 9l6-6 6 6M4 16v4h16v-4"/></symbol><symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v13M6 10l6 6 6-6M4 18v3h16v-3"/></symbol><symbol id="i-database" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v7c0 1.7 4 3 9 3s9-1.3 9-3V5M3 12v7c0 1.7 4 3 9 3s9-1.3 9-3v-7"/></symbol><symbol id="i-lock" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/></symbol><symbol id="i-theme-auto" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M8 21h8M12 18v3"/></symbol><symbol id="i-theme-light" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.65 17.65l1.42 1.42M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.65 6.35l1.42-1.42"/></symbol><symbol id="i-theme-dark" viewBox="0 0 24 24"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5 8.5 8.5 0 1 0 20.5 14.5Z"/></symbol></svg>
 <header class="topbar">
  <div class="brand"><span class="brandmark"><svg class="ui-icon" aria-hidden="true"><use href="#i-network"></use></svg></span><div><div class="brandname">FamilyNet</div><div class="brandhint" id="report">正在连接</div></div></div>
- <div class="topbar-actions"><label class="theme-mode">主题
-  <select id="themeMode" aria-label="显示主题">
-   <option value="auto">自动</option>
-   <option value="light">浅色</option>
-   <option value="dark">深色</option>
-  </select>
- </label>
-  <nav class="nav" role="tablist" aria-label="监控页面"><button data-tab="home" class="active" type="button" aria-selected="true">概览</button><button data-tab="audit" type="button" aria-selected="false">流量分析</button></nav></div>
+ <div class="topbar-actions">
+  <nav class="nav" role="tablist" aria-label="监控页面"><button data-tab="home" class="active" type="button" aria-selected="true">概览</button><button data-tab="audit" type="button" aria-selected="false">流量分析</button></nav>
+  <div class="theme-control" id="themeControl">
+   <button class="theme-trigger" id="themeTrigger" type="button" aria-label="切换显示主题" aria-haspopup="true" aria-expanded="false" aria-controls="themeMenu" title="显示主题">
+    <svg class="ui-icon" aria-hidden="true"><use id="themeIcon" href="#i-theme-auto"></use></svg>
+   </button>
+   <div class="theme-menu" id="themeMenu" role="group" aria-label="显示主题" hidden>
+    <button type="button" data-theme-option="auto"><svg class="ui-icon" aria-hidden="true"><use href="#i-theme-auto"></use></svg><span>跟随系统</span><span class="theme-selected" aria-hidden="true">✓</span></button>
+    <button type="button" data-theme-option="light"><svg class="ui-icon" aria-hidden="true"><use href="#i-theme-light"></use></svg><span>浅色</span><span class="theme-selected" aria-hidden="true">✓</span></button>
+    <button type="button" data-theme-option="dark"><svg class="ui-icon" aria-hidden="true"><use href="#i-theme-dark"></use></svg><span>深色</span><span class="theme-selected" aria-hidden="true">✓</span></button>
+   </div>
+  </div>
+ </div>
 </header>
 <div class="page">
 <section id="home">
@@ -466,20 +478,34 @@ footer{text-align:center;margin:26px 0 0;color:#9aa7b6;font-size:11px}
 var page="home",hours=24,lastPingRound=-1,stampAudit=0,busy=false,loaded=false,auditAuth="",uptimeAnchor=null,auditHistory=[],selectedRange=null,rankRequest=0;
 function el(id){return document.getElementById(id)}
 
-var themeSelect=el("themeMode");
+var themeControl=el("themeControl"),themeTrigger=el("themeTrigger"),themeMenu=el("themeMenu"),themeIcon=el("themeIcon");
 function setThemeChoice(choice,remember){
  if(["auto","light","dark"].indexOf(choice)<0)choice="auto";
  var dark=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;
  document.documentElement.setAttribute("data-theme-choice",choice);
  document.documentElement.setAttribute("data-effective-theme",choice==="auto"?(dark?"dark":"light"):choice);
- themeSelect.value=choice;
+ themeIcon.setAttribute("href","#i-theme-"+choice);
+ themeTrigger.title=choice==="auto"?"主题：跟随系统":choice==="light"?"主题：浅色":"主题：深色";
+ themeMenu.querySelectorAll("[data-theme-option]").forEach(function(btn){btn.setAttribute("aria-pressed",btn.dataset.themeOption===choice?"true":"false")});
  if(remember){try{localStorage.setItem("familynet-theme",choice)}catch(e){}}
 }
+function closeThemeMenu(){themeMenu.hidden=true;themeTrigger.setAttribute("aria-expanded","false")}
 setThemeChoice(document.documentElement.getAttribute("data-theme-choice")||"auto",false);
-themeSelect.addEventListener("change",function(){setThemeChoice(themeSelect.value,true)});
+themeTrigger.addEventListener("click",function(){
+ var opening=themeMenu.hidden;
+ themeMenu.hidden=!opening;
+ themeTrigger.setAttribute("aria-expanded",opening?"true":"false");
+});
+themeMenu.querySelectorAll("[data-theme-option]").forEach(function(btn){btn.addEventListener("click",function(){
+ setThemeChoice(btn.dataset.themeOption,true);
+ closeThemeMenu();
+ themeTrigger.focus();
+})});
+document.addEventListener("pointerdown",function(ev){if(!themeControl.contains(ev.target))closeThemeMenu()});
+document.addEventListener("keydown",function(ev){if(ev.key==="Escape"&&!themeMenu.hidden){closeThemeMenu();themeTrigger.focus()}});
 if(window.matchMedia){
  var themeQuery=window.matchMedia("(prefers-color-scheme: dark)");
- var themeChanged=function(){if(themeSelect.value==="auto")setThemeChoice("auto",false)};
+ var themeChanged=function(){if(document.documentElement.getAttribute("data-theme-choice")==="auto")setThemeChoice("auto",false)};
  if(themeQuery.addEventListener)themeQuery.addEventListener("change",themeChanged);
  else if(themeQuery.addListener)themeQuery.addListener(themeChanged);
 }

@@ -337,8 +337,10 @@ class Store:
 
     def cleanup(self):
         with self.lock, self.conn:
+            # Keep probe records longer than the 24-hour chart so its oldest
+            # completed round is not pruned between scheduled measurements.
             self.conn.execute("DELETE FROM pings WHERE ts<?",
-                              (int(time.time()) - 86400,))
+                              (int(time.time()) - 48 * 3600,))
             self.conn.execute("DELETE FROM flows WHERE last_ts<?",
                               (int(time.time()) - 86400,))
             self.conn.execute("DELETE FROM flow_usage WHERE bucket<?",
@@ -949,10 +951,12 @@ class Monitor:
         return [{"ts": ts, "up": up, "down": down} for ts, up, down in data]
 
     def pings(self):
-        since = int(time.time()) - 86400
+        # Exactly the last 48 completed observations per task (not a rolling
+        # wall-clock 24h cutoff that loses the leftmost sample between rounds).
+        since = int(time.time()) - 48 * 3600
         data = self.db.execute(
-            "SELECT task_id,ts,latency,ok,loss FROM pings WHERE ts>=? ORDER BY ts",
-            (since,)
+            "SELECT task_id,ts,latency,ok,loss FROM pings "
+            "WHERE ts>=? ORDER BY ts,id", (since,)
         )
         by_id = {}
         for task, ts, latency, ok, loss in data:
@@ -961,7 +965,7 @@ class Monitor:
                  "loss": round(float(loss), 1) if loss is not None else (0.0 if ok else 100.0)}
             )
         return [{"id": task["id"], "name": task["name"], "target": task["target"],
-                 "history": by_id.get(str(task["id"]), [])}
+                 "history": by_id.get(str(task["id"]), [])[-48:]}
                 for task in self.cfg["targets"]]
 
     def resolved_names(self, ips):

@@ -190,33 +190,40 @@ footer{text-align:center;margin:26px 0 0;color:#9aa7b6;font-size:11px}
 .segment-track{margin-top:8px}
 .probe-gridline{grid-template-columns:27px minmax(0,1fr)}
 .probe-gridline .gr-label{display:block}
-.cells .l1{background:#20aa83}
-.cells .l2{background:#45b988}
-.cells .l3{background:#e4bc48}
-.cells .l4{background:#ed964a}
-.cells .l5{background:#e36168}
+.cells .l1{background:#25a77a}
+.cells .l2{background:#7dbd62}
+.cells .l3{background:#dec854}
+.cells .l4{background:#e9a052}
+.cells .l5{background:#e06a68}
 .cells .p0{background:#29b394}
 .cells .p2{background:#e4b94a}
 .cells .p4{background:#e36168}
-.probe-values strong.l1{color:#199d7b}
-.probe-values strong.l2{color:#39ad7e}
-.probe-values strong.l3{color:#ba921f}
-.probe-values strong.l4{color:#dd863a}
-.probe-values strong.l5{color:#d4555c}
+.probe-values strong.l1{color:#188a60}
+.probe-values strong.l2{color:#5c973a}
+.probe-values strong.l3{color:#ae8f18}
+.probe-values strong.l4{color:#cc7a29}
+.probe-values strong.l5{color:#c95357}
 .probe-values strong.p0{color:#199c78}
 .probe-values strong.p2{color:#bb8b17}
 .probe-values strong.p4{color:#d4555c}
 .probe-values strong:not([class*="l"]):not([class*="p"]){color:#8b96a4}
 .auth-username{position:absolute;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none}
 
-/* Inline, readable probe legend */
-.ping-titlebar{align-items:center}
-.probe-legend{display:grid;gap:4px;margin:0 0 0 auto;font-size:11px;color:#718092}
-.probe-legend-row{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;column-gap:12px;row-gap:4px}
-.probe-legend-label{min-width:68px;font-size:11px;font-weight:700;color:#586878;white-space:nowrap}
+/* Two aligned legend rows share columns, beside the title on wide screens */
+.ping-titlebar{display:flex;align-items:center;justify-content:space-between;flex-wrap:nowrap;gap:20px}
+.ping-titlebar h2{margin:0;flex:none;white-space:nowrap}
+.probe-legend{display:grid;grid-template-columns:75px repeat(5,max-content);column-gap:12px;row-gap:7px;align-items:center;justify-content:end;margin-left:auto;font-size:11px;color:#718092}
+.probe-legend-row{display:contents}
+.probe-legend-label{font-size:11px;font-weight:700;color:#586878;white-space:nowrap}
 .probe-legend-item{display:inline-flex;align-items:center;gap:5px;white-space:nowrap;font-variant-numeric:tabular-nums}
 .probe-legend-item i{display:inline-block;width:10px;height:10px;border-radius:2px;flex:none}
-@media(max-width:760px){.ping-titlebar{align-items:flex-start}.probe-legend{margin:0}.probe-legend-row{justify-content:flex-start}}
+.probe-legend-row:last-child .probe-legend-item:last-child{grid-column:span 2}
+@media(max-width:710px){
+  .ping-titlebar{flex-wrap:wrap;align-items:flex-start;gap:9px}
+  .probe-legend{display:flex;flex-direction:column;gap:6px;align-items:flex-start;margin:0}
+  .probe-legend-row{display:flex;flex-wrap:wrap;align-items:center;gap:6px 11px}
+  .probe-legend-label{min-width:75px}
+}
 </style>
 </head>
 <body>
@@ -268,11 +275,11 @@ footer{text-align:center;margin:26px 0 0;color:#9aa7b6;font-size:11px}
   <div class="probe-legend" aria-label="线路监测颜色图例">
   <div class="probe-legend-row">
    <strong class="probe-legend-label">延迟 (ms)</strong>
-   <span class="probe-legend-item"><i style="background:#20aa83"></i>≤145</span>
-   <span class="probe-legend-item"><i style="background:#45b988"></i>145–160</span>
-   <span class="probe-legend-item"><i style="background:#e4bc48"></i>160–180</span>
-   <span class="probe-legend-item"><i style="background:#ed964a"></i>180–220</span>
-   <span class="probe-legend-item"><i style="background:#e36168"></i>&gt;220</span>
+   <span class="probe-legend-item"><i style="background:#25a77a"></i>≤145</span>
+   <span class="probe-legend-item"><i style="background:#7dbd62"></i>145–160</span>
+   <span class="probe-legend-item"><i style="background:#dec854"></i>160–180</span>
+   <span class="probe-legend-item"><i style="background:#e9a052"></i>180–220</span>
+   <span class="probe-legend-item"><i style="background:#e06a68"></i>&gt;220</span>
   </div>
   <div class="probe-legend-row">
    <strong class="probe-legend-label">连接 (5次)</strong>

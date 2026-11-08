@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Update the monitor view and just the probe scheduler on existing installations.
+# Update probe scheduler, 48-slot API history, and frontend without replacing local hotfixes.
 set -Eeuo pipefail
 umask 077
 [ "$(id -u)" -eq 0 ] || { echo "请使用 sudo bash 运行" >&2; exit 1; }
 APP=/opt/familynet-monitor
-PIN=3faaff367caf89d8b9f27cb9cdc4497ae7938195
+PIN=1a26a7d485d20b2a3e7ab4121b927a227eaa3e54
 BASE="https://raw.githubusercontent.com/z-q-chen/FamilyNet/$PIN/ops/monitor"
 TMP=$(mktemp -d)
 CHANGED=0
@@ -35,7 +35,7 @@ cp -p "$APP/index.html" "$TMP/original-index.html"
 curl -fLsS --retry 3 "$BASE/index.html" -o "$TMP/index.html"
 curl -fLsS --retry 3 "$BASE/monitor.py" -o "$TMP/upstream-monitor.py"
 
-# Copy only Store.ping_batch and ping_loop; preserve unrelated server hotfixes.
+# Copy only the probe-related methods and scheduler; keep unrelated local hotfixes.
 python3 - "$APP/monitor.py" "$TMP/upstream-monitor.py" "$TMP/monitor.py" <<'PY'
 import ast
 from pathlib import Path
@@ -47,9 +47,9 @@ upstream = Path(sys.argv[2]).read_text(encoding="utf-8")
 def block(code, node):
     return "".join(code.splitlines(keepends=True)[node.lineno - 1:node.end_lineno])
 
-def method(code, name):
+def method(code, name, cls_name="Store"):
     tree = ast.parse(code)
-    cls = next(n for n in tree.body if isinstance(n, ast.ClassDef) and n.name == "Store")
+    cls = next(n for n in tree.body if isinstance(n, ast.ClassDef) and n.name == cls_name)
     return next((n for n in cls.body if isinstance(n, ast.FunctionDef) and n.name == name), None)
 
 def top_function(code, name):
@@ -83,9 +83,25 @@ else:
         block(upstream, src_batch).rstrip("\n") + "\n"
     ]
 patched = "".join(lines)
+
+# Keep the last 48 probe rounds, not merely the last 24 wall-clock hours.
+# Preserve all locally customized functions unrelated to the probe history.
+for cls_name, name in (("Store", "cleanup"), ("Monitor", "pings")):
+    source_node = method(upstream, name, cls_name)
+    target_node = method(patched, name, cls_name)
+    if source_node is None or target_node is None:
+        raise SystemExit("缺少探针历史方法：" + cls_name + "." + name)
+    lines = patched.splitlines(keepends=True)
+    lines[target_node.lineno - 1:target_node.end_lineno] = [
+        block(upstream, source_node).rstrip("\n") + "\n"
+    ]
+    patched = "".join(lines)
+
 ast.parse(patched)
 assert "store.ping_batch(readings)" in patched
 assert "ThreadPoolExecutor(max_workers=len(tasks)" in patched
+assert '"history": by_id.get(str(task["id"]), [])[-48:]' in patched
+assert "(int(time.time()) - 48 * 3600,)" in patched
 Path(sys.argv[3]).write_text(patched, encoding="utf-8")
 PY
 
@@ -95,6 +111,7 @@ from pathlib import Path
 import sys
 s = Path(sys.argv[1]).read_text(encoding="utf-8")
 for marker in ('class="probe-legend"', 'id="pinggrid"', 'mostRecentTs',
+               'var columnCount=48;', 'Math.round((Number(q.ts)-lastRound)/1800)',
                'function classifyDelay', 'function classifyLoss', 'audit=auth'):
     assert marker in s, marker
 PY
@@ -117,5 +134,5 @@ done
 [ "$OK" = 1 ] || { echo "健康检查未通过" >&2; exit 1; }
 
 SUCCESS=1
-echo "FamilyNet 已更新：12 组下轮同步检测，图例位于标题右侧。"
-echo "原有监控历史、密码及其他本地 Python 修改均保留。"
+echo "FamilyNet 已更新：每轮 12 组同步检测，固定 48 格历史仅在新结果产生时平移。"
+echo "原有记录、密码及其他本地 Python 修改均保留。"

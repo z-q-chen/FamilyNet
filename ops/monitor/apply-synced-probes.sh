@@ -4,7 +4,7 @@ set -Eeuo pipefail
 umask 077
 [ "$(id -u)" -eq 0 ] || { echo "请使用 sudo bash 运行" >&2; exit 1; }
 APP=/opt/familynet-monitor
-PIN=1a26a7d485d20b2a3e7ab4121b927a227eaa3e54
+PIN=6cd4ef277b467f59b7012c168e7c8d558f13af77
 BASE="https://raw.githubusercontent.com/z-q-chen/FamilyNet/$PIN/ops/monitor"
 TMP=$(mktemp -d)
 CHANGED=0
@@ -111,7 +111,7 @@ from pathlib import Path
 import sys
 s = Path(sys.argv[1]).read_text(encoding="utf-8")
 for marker in ('class="probe-legend"', 'id="pinggrid"', 'mostRecentTs',
-               'var columnCount=48;', 'Math.round((Number(q.ts)-lastRound)/1800)',
+               'var columnCount=48,offset=48-roundTimes.length', 'var idx=roundIndex(q.ts);',
                'function classifyDelay', 'function classifyLoss', 'audit=auth'):
     assert marker in s, marker
 PY

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="color-scheme" content="light">
+<meta name="color-scheme" content="light dark">
 <title>FamilyNet</title>
 <style>
 
@@ -224,42 +224,139 @@ footer{text-align:center;margin:26px 0 0;color:#9aa7b6;font-size:11px}
   .probe-legend-row{display:flex;flex-wrap:wrap;align-items:center;gap:6px 11px}
   .probe-legend-label{min-width:75px}
 }
+
+/* Unified local SVG icons. The approved layout and all dimensions stay unchanged. */
+.icon-defs{position:absolute;width:0;height:0;overflow:hidden;pointer-events:none}
+.ui-icon{display:inline-block;width:1em;height:1em;flex:none;vertical-align:-.12em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.brandmark .ui-icon{width:20px;height:20px}
+.res-head .ui-icon{width:15px;height:15px}
+.speed-label .ui-icon.arrow{width:19px;height:19px;font-size:inherit}
+.quota-head .maintext .ui-icon{width:15px;height:15px;vertical-align:-.15em;margin-right:5px}
+.auditgate .lock .ui-icon{width:23px;height:23px}
+.plan-caption{font-size:12px;font-weight:650;color:var(--muted);white-space:nowrap}
+@media(max-width:760px){.identity{flex-wrap:wrap;gap:6px 9px}.plan-caption{font-size:11px}}
+@media(max-width:560px){.plan-caption{width:100%;padding-left:27px;margin-top:-4px}}
+/* Follow device theme. Light mode stays exactly as the approved baseline. */
+@media(prefers-color-scheme:dark){
+ :root{
+  color-scheme:dark;
+  --bg:#111820;--paper:#1b2530;--ink:#e4ebf2;--muted:#9caec0;
+  --line:#304050;--blue:#88b8e1;--green:#76cba5;--purple:#b197d6;
+  --orange:#d29b68;--gold:#c4aa70;--red:#db858b;
+  --legend-l1:#318e72;--legend-l2:#789f69;--legend-l3:#baa75f;
+  --legend-l4:#bd8a60;--legend-l5:#b96a70;
+  --legend-p0:#318e72;--legend-p2:#baa75f;--legend-p4:#b96a70;--legend-none:#344351;
+ }
+ html,body{background:var(--bg);color:var(--ink)}
+ .card{background:var(--paper);border-color:var(--line);box-shadow:0 4px 18px rgba(0,0,0,.12)}
+ .brandmark{background:#27394b;color:#b0d1ee}
+ .nav{background:#222f3d}.nav button{color:#9eb2c5}
+ .nav button.active{background:#31485f;color:#d1e7f8;box-shadow:none}
+ .identity h1{color:#b0d4f2}
+ .online{color:#88cfa9}.online .dot{background:#65bb91}
+ .chip{background:#293a4b;color:#bfd0df}
+ .chip.ip{background:#294237;color:#a6d9c0}
+ .chip.plan{background:#40334e;color:#c1abdd}
+ .section-label{color:#9eafc0}
+ .res-head span{color:#b3c3d2}
+ .res-sub,.bottom-meta .k,.quota-meta,.ipheading small{color:#9caec0}
+ .segment-track i{background:#2c3a49}
+ .segment-track i.filled.cpu{background:#6a96c0}
+ .segment-track i.filled.mem{background:#987fbd}
+ .segment-track i.filled.disk{background:#c18a62}
+ .segment-track i.filled.load{background:#58a997}
+ .speed-label,.speed-label b{color:#d1b67e}
+ .speed-label .arrow{color:#8bbbe4}
+ .speedcard:last-child .arrow{color:#78c5a3}
+ .activity-dots i{background:#3c3b40}
+ .activity-dots i.lit{background:#c0a267}
+ .traffic-row span,.quota-head .maintext,.quota-head .spend{color:#aebfd0}
+ .traffic-row b{color:#e2eaf1}
+ .quota-progress{background:#2b3947}
+ .quota-progress .fill{background:linear-gradient(90deg,#368875,#59aa8f)}
+ .quota-head .remain{color:#8bd1ad}
+ .hint,.subtitle,.key{color:#9caec0}
+ .region-title{border-bottom-color:var(--line)}
+ .ipheading b{background:#2a4358;color:#a8cfee}
+ .probe{border-bottom-color:#2e3b49}
+ .probe-name{color:#bfccda}
+ .probe-values strong{color:#d0b678}
+ .probe-values strong small,.probe-gridline .gr-label{color:#96aabb}
+ .probe-values .lossvalue{color:#8bcca9}
+ .cells i,.cells .unknown{background:var(--legend-none)}
+ .cells .l1{background:var(--legend-l1)}
+ .cells .l2{background:var(--legend-l2)}
+ .cells .l3{background:var(--legend-l3)}
+ .cells .l4{background:var(--legend-l4)}
+ .cells .l5{background:var(--legend-l5)}
+ .cells .p0{background:var(--legend-p0)}
+ .cells .p1{background:var(--legend-l2)}
+ .cells .p2{background:var(--legend-p2)}
+ .cells .p3{background:var(--legend-l4)}
+ .cells .p4{background:var(--legend-p4)}
+ .probe-values strong.l1,.probe-values strong.p0{color:#80cfa7}
+ .probe-values strong.l2{color:#9ec78c}
+ .probe-values strong.l3,.probe-values strong.p2{color:#d4c380}
+ .probe-values strong.l4{color:#d1a075}
+ .probe-values strong.l5,.probe-values strong.p4{color:#d88d93}
+ .probe-values strong:not([class*="l"]):not([class*="p"]){color:#a1b3c5}
+ .probe-legend,.probe-legend-label{color:#b7c7d5}
+ .ping-footer{color:#9dafbf}
+ .range,.tinybutton{background:#273748;color:#b7c9db;border-color:#3b4c60}
+ .range.active{background:#2e4b64;border-color:#587995;color:#d4edff}
+ .chartwrap{background:#17222d;border-color:var(--line)}
+ .chartwrap svg line[stroke="#edf0f4"]{stroke:#35475a}
+ .chartwrap svg circle[stroke="#fff"]{stroke:#17222d}
+ .trendcard .auditstats{border-top-color:var(--line);border-bottom-color:var(--line)}
+ .trendcard .stat + .stat{border-left-color:var(--line)}
+ .legend,.rankmeta,.auditrankgrid table td .sub{color:#9dafbf}
+ th,td{border-bottom-color:var(--line)}th{color:#a0b3c5}
+ .rankitem{border-bottom-color:var(--line)}
+ .rankbar{background:#2a3949}
+ .rankbar i{background:linear-gradient(90deg,#6b9ec7,#54aa94)}
+ .auditgate .lock{background:#2b4358;color:#b3d8f3}
+ .authrow input{background:#131e29;border-color:#455a70;color:#e2ecf5}
+ .authrow input::placeholder{color:#90a6bb}
+ .authrow button{background:#446f95;color:#f2f6fa}
+ .empty,footer{color:#9dafbf}
+}
 </style>
 </head>
 <body>
+<svg class="icon-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><symbol id="i-network" viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="6" rx="1.4"/><rect x="2" y="16" width="7" height="6" rx="1.4"/><rect x="15" y="16" width="7" height="6" rx="1.4"/><path d="M12 8v4M5.5 16v-4H19v4"/></symbol><symbol id="i-cpu" viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2"/><rect x="9" y="9" width="6" height="6" rx="1"/><path d="M9 1v4M15 1v4M9 19v4M15 19v4M1 9h4M1 15h4M19 9h4M19 15h4"/></symbol><symbol id="i-memory" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="10" rx="2"/><path d="M6 10v4M10 10v4M14 10v4M18 10v4M5 17v2M9 17v2M13 17v2M17 17v2"/></symbol><symbol id="i-disk" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 12h18M7 16h.01M11 16h.01"/></symbol><symbol id="i-gauge" viewBox="0 0 24 24"><path d="M5 19a9 9 0 1 1 14 0M12 12l4-4M8 19h8"/><circle cx="12" cy="12" r="1.5"/></symbol><symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V3M6 9l6-6 6 6M4 16v4h16v-4"/></symbol><symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v13M6 10l6 6 6-6M4 18v3h16v-3"/></symbol><symbol id="i-database" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v7c0 1.7 4 3 9 3s9-1.3 9-3V5M3 12v7c0 1.7 4 3 9 3s9-1.3 9-3v-7"/></symbol><symbol id="i-lock" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/></symbol></svg>
 <header class="topbar">
- <div class="brand"><span class="brandmark">▣</span><div><div class="brandname">FamilyNet</div><div class="brandhint" id="report">正在连接</div></div></div>
+ <div class="brand"><span class="brandmark"><svg class="ui-icon" aria-hidden="true"><use href="#i-network"></use></svg></span><div><div class="brandname">FamilyNet</div><div class="brandhint" id="report">正在连接</div></div></div>
  <nav class="nav" role="tablist" aria-label="监控页面"><button data-tab="home" class="active" type="button" aria-selected="true">概览</button><button data-tab="audit" type="button" aria-selected="false">流量分析</button></nav>
 </header>
 <div class="page">
 <section id="home">
  <article class="card monitor">
   <div class="titleline">
-   <div class="identity"><span class="flag">🇺🇸</span><h1 id="serverName">FamilyNet</h1></div>
+   <div class="identity"><span class="flag">🇺🇸</span><h1 id="serverName">HHost · 洛杉矶 VPS</h1><span class="plan-caption" id="planCaption">200 Mbps · 400 GB</span></div>
    <span class="online"><i class="dot" id="dot"></i><span id="activity">连接中</span></span>
   </div>
   <div class="chips"><span class="chip">US;VPS</span><span class="chip ip">V4</span><span class="chip ip">V6</span><span class="chip plan">FamilyNet</span></div>
   <div class="resource-grid">
-   <div class="resource"><div class="res-head"><span>⚙ CPU</span><b id="cpu">—</b></div><div class="res-sub" id="cpuDesc">—</div><div class="segment-track" id="cpuCells"></div></div>
-   <div class="resource"><div class="res-head"><span>▤ 内存</span><b id="mem">—</b></div><div class="res-sub" id="memDesc">—</div><div class="segment-track" id="memCells"></div></div>
-   <div class="resource"><div class="res-head"><span>▣ 磁盘</span><b id="disk">—</b></div><div class="res-sub" id="diskDesc">—</div><div class="segment-track" id="diskCells"></div></div>
-   <div class="resource"><div class="res-head"><span>◷ 负载</span><b id="load">—</b></div><div class="res-sub">1 分钟平均负载</div><div class="segment-track" id="loadCells"></div></div>
+   <div class="resource"><div class="res-head"><span><svg class="ui-icon" aria-hidden="true"><use href="#i-cpu"></use></svg>CPU</span><b id="cpu">—</b></div><div class="res-sub" id="cpuDesc">—</div><div class="segment-track" id="cpuCells"></div></div>
+   <div class="resource"><div class="res-head"><span><svg class="ui-icon" aria-hidden="true"><use href="#i-memory"></use></svg>内存</span><b id="mem">—</b></div><div class="res-sub" id="memDesc">—</div><div class="segment-track" id="memCells"></div></div>
+   <div class="resource"><div class="res-head"><span><svg class="ui-icon" aria-hidden="true"><use href="#i-disk"></use></svg>磁盘</span><b id="disk">—</b></div><div class="res-sub" id="diskDesc">—</div><div class="segment-track" id="diskCells"></div></div>
+   <div class="resource"><div class="res-head"><span><svg class="ui-icon" aria-hidden="true"><use href="#i-gauge"></use></svg>负载</span><b id="load">—</b></div><div class="res-sub">1 分钟平均负载</div><div class="segment-track" id="loadCells"></div></div>
   </div>
   <hr class="hr">
   <div class="speedgrid">
    <div class="speedcard">
-    <div class="speed-label"><span class="arrow">↑</span> 上行 <b id="netUp">—</b></div>
+    <div class="speed-label"><svg class="ui-icon arrow" aria-hidden="true"><use href="#i-upload"></use></svg>上行 <b id="netUp">—</b></div>
     <div class="activity-dots" id="upDots"></div>
-    <div class="traffic-row"><span><span class="globe">◎</span> 出站</span><b id="totalUp">—</b></div>
+    <div class="traffic-row"><span>本周期上传</span><b id="totalUp">—</b></div>
    </div>
    <div class="speedcard">
-    <div class="speed-label"><span class="arrow">↓</span> 下行 <b id="netDown">—</b></div>
+    <div class="speed-label"><svg class="ui-icon arrow" aria-hidden="true"><use href="#i-download"></use></svg>下行 <b id="netDown">—</b></div>
     <div class="activity-dots" id="downDots"></div>
-    <div class="traffic-row"><span><span class="globe">◎</span> 入站</span><b id="totalDown">—</b></div>
+    <div class="traffic-row"><span>本周期下载</span><b id="totalDown">—</b></div>
    </div>
   </div>
   <hr class="hr">
-  <div class="quota-head"><div class="maintext">▤ 剩余流量 <span class="remain" id="quotaRemaining">—</span></div><div class="spend" id="quotaValue">— / 400 GB</div></div>
+  <div class="quota-head"><div class="maintext"><svg class="ui-icon" aria-hidden="true"><use href="#i-database"></use></svg>剩余流量 <span class="remain" id="quotaRemaining">—</span></div><div class="spend" id="quotaValue">— / 400 GB</div></div>
   <div class="quota-progress"><div class="fill" id="quotaBar"></div></div>
   <div class="quota-meta"><span id="quotaHint">本周期</span><span>流量进度</span></div>
   <hr class="hr">
@@ -275,18 +372,18 @@ footer{text-align:center;margin:26px 0 0;color:#9aa7b6;font-size:11px}
   <div class="probe-legend" aria-label="线路监测颜色图例">
   <div class="probe-legend-row">
    <strong class="probe-legend-label">延迟 (ms)</strong>
-   <span class="probe-legend-item"><i style="background:#25a77a"></i>≤145</span>
-   <span class="probe-legend-item"><i style="background:#7dbd62"></i>145–160</span>
-   <span class="probe-legend-item"><i style="background:#dec854"></i>160–180</span>
-   <span class="probe-legend-item"><i style="background:#e9a052"></i>180–220</span>
-   <span class="probe-legend-item"><i style="background:#e06a68"></i>&gt;220</span>
+   <span class="probe-legend-item"><i style="background:var(--legend-l1, #25a77a)"></i>≤145</span>
+   <span class="probe-legend-item"><i style="background:var(--legend-l2, #7dbd62)"></i>145–160</span>
+   <span class="probe-legend-item"><i style="background:var(--legend-l3, #dec854)"></i>160–180</span>
+   <span class="probe-legend-item"><i style="background:var(--legend-l4, #e9a052)"></i>180–220</span>
+   <span class="probe-legend-item"><i style="background:var(--legend-l5, #e06a68)"></i>&gt;220</span>
   </div>
   <div class="probe-legend-row">
    <strong class="probe-legend-label">连接 (5次)</strong>
-   <span class="probe-legend-item"><i style="background:#29b394"></i>0/5 失败</span>
-   <span class="probe-legend-item"><i style="background:#e4b94a"></i>1/5 失败</span>
-   <span class="probe-legend-item"><i style="background:#e36168"></i>≥2/5 失败</span>
-   <span class="probe-legend-item"><i style="background:#e9edf1"></i>无数据</span>
+   <span class="probe-legend-item"><i style="background:var(--legend-p0, #29b394)"></i>0/5 失败</span>
+   <span class="probe-legend-item"><i style="background:var(--legend-p2, #e4b94a)"></i>1/5 失败</span>
+   <span class="probe-legend-item"><i style="background:var(--legend-p4, #e36168)"></i>≥2/5 失败</span>
+   <span class="probe-legend-item"><i style="background:var(--legend-none, #e9edf1)"></i>无数据</span>
   </div>
   </div>
  </div>
@@ -295,7 +392,7 @@ footer{text-align:center;margin:26px 0 0;color:#9aa7b6;font-size:11px}
 </section>
 <section id="audit" hidden>
  <div id="auditGate" class="card auditgate">
-  <div class="lock" aria-hidden="true">🔒</div><h3>流量分析</h3><p>输入密码查看网络访问与历史记录</p>
+  <div class="lock" aria-hidden="true"><svg class="ui-icon" aria-hidden="true"><use href="#i-lock"></use></svg></div><h3>流量分析</h3><p>输入密码查看网络访问与历史记录</p>
   <form id="auditLoginForm" autocomplete="on"><input class="auth-username" type="text" name="username" autocomplete="username" value="admin" readonly tabindex="-1" aria-hidden="true"><div class="authrow"><input id="auditPassword" name="password" type="password" placeholder="流量分析密码" aria-label="流量分析密码" required autocomplete="current-password"><button type="submit">解锁</button></div><p class="autherror" id="authError" role="alert"></p></form>
  </div>
  <div id="auditContent" hidden>
@@ -350,9 +447,10 @@ function showAuditGate(){auditAuth="";stampAudit=0;selectedRange=null;rankReques
 async function unlockAudit(password){auditAuth=authHeader(password);try{await api("/api/state?audit=auth",true);el("auditGate").hidden=true;el("auditContent").hidden=false;el("auditPassword").value="";text("authError","");stampAudit=0;refresh()}catch(e){auditAuth="";el("auditPassword").value="";text("authError",e.authFailure?"密码错误":"连接验证接口失败，请检查网络")}}
 function setActive(status){el("dot").classList.toggle("off",!status);text("activity",status?"已连接":"连接异常")}
 function renderState(s){
-  text("serverName","FamilyNet");
+  text("serverName","HHost · 洛杉矶 VPS");
+  text("planCaption","200 Mbps · "+(Number(s.quota)>0?fmt(s.quota).replace(/\.00(?= )/,""):"400 GB"));
   text("report","最近更新 "+time(s.time));
-  document.title="FamilyNet";
+  document.title="HHost · FamilyNet";
   uptimeAnchor={seconds:Number(s.uptime)||0,at:performance.now()};
   text("uptime",days(s.uptime));
   text("cpu",s.cpu===null?"—":Number(s.cpu).toFixed(2)+"%");

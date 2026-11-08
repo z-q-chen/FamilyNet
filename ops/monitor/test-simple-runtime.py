@@ -29,6 +29,7 @@ def main(path):
                     "INSERT INTO pings(ts,task_id,latency,ok,loss) "
                     "VALUES(?,?,150,1,0)", (stamp, task)
                 )
+        db.close()
         store = module.Store()
         assert len(store.execute("SELECT id FROM probe_rounds")) == 2
         assert len(store.execute("SELECT id FROM pings WHERE round_id IS NULL")) == 0

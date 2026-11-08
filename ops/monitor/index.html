@@ -433,18 +433,22 @@ th{color:#a6b6c6}
 </header>
 <div class="page">
 <section id="home">
- <article class="card monitor">
-  <div class="titleline">
+ <div class="serverline">
    <div class="identity"><span class="server-icon"><svg class="ico" aria-hidden="true"><use href="#icon-server"></use></svg></span><h1 id="serverName">HHost · 洛杉矶 VPS</h1><span class="server-plan" id="planCaption">200 Mbps · 400 GB</span></div>
    <span class="online"><i class="dot" id="dot"></i><span id="activity">连接中</span></span>
   </div>
+<div class="overview-grid" aria-label="服务器状态概览">
+ <section class="card overview-card resources-panel" aria-labelledby="resources-title">
+  <div class="panel-head"><h2 id="resources-title">系统资源</h2><span class="panel-note">实时状态</span></div>
   <div class="resource-grid">
    <div class="resource"><div class="res-head"><span><svg class="ico" aria-hidden="true"><use href="#icon-cpu"></use></svg>CPU</span><b id="cpu">—</b></div><div class="res-sub" id="cpuDesc">—</div><div class="segment-track" id="cpuCells"></div></div>
    <div class="resource"><div class="res-head"><span><svg class="ico" aria-hidden="true"><use href="#icon-memory"></use></svg>内存</span><b id="mem">—</b></div><div class="res-sub" id="memDesc">—</div><div class="segment-track" id="memCells"></div></div>
    <div class="resource"><div class="res-head"><span><svg class="ico" aria-hidden="true"><use href="#icon-disk"></use></svg>磁盘</span><b id="disk">—</b></div><div class="res-sub" id="diskDesc">—</div><div class="segment-track" id="diskCells"></div></div>
    <div class="resource"><div class="res-head"><span><svg class="ico" aria-hidden="true"><use href="#icon-gauge"></use></svg>负载</span><b id="load">—</b></div><div class="res-sub">1 分钟平均负载</div><div class="segment-track" id="loadCells"></div></div>
   </div>
-  <hr class="hr">
+ </section>
+ <section class="card overview-card traffic-panel" aria-labelledby="traffic-title">
+  <div class="panel-head"><h2 id="traffic-title">网络流量</h2><span class="panel-note">速率与套餐额度</span></div>
   <div class="speedgrid">
    <div class="speedcard">
     <div class="speed-label"><svg class="ico arrow" aria-hidden="true"><use href="#icon-upload"></use></svg>上传速率 <b id="netUp">—</b></div>
@@ -457,19 +461,23 @@ th{color:#a6b6c6}
     <div class="traffic-row"><span>本周期下载</span><b id="totalDown">—</b></div>
    </div>
   </div>
-  <hr class="hr">
-  <div class="quota-head"><div class="maintext"><svg class="ico" aria-hidden="true"><use href="#icon-database"></use></svg>剩余流量 <span class="remain" id="quotaRemaining">—</span></div><div class="spend" id="quotaValue">— / 400 GB</div></div>
+  <div class="quota-block">
+   <div class="quota-head"><div class="maintext"><svg class="ico" aria-hidden="true"><use href="#icon-database"></use></svg>剩余流量 <span class="remain" id="quotaRemaining">—</span></div><div class="spend" id="quotaValue">— / 400 GB</div></div>
   <div class="quota-progress"><div class="fill" id="quotaBar"></div></div>
   <div class="quota-meta"><span id="quotaHint">本周期</span><span>流量进度</span></div>
-  <hr class="hr">
+  </div>
+ </section>
+ <section class="card overview-card basics-panel" aria-labelledby="basics-title">
+  <div class="panel-head"><h2 id="basics-title">基础信息</h2><span class="panel-note">当前套餐</span></div>
   <div class="bottom-meta">
    <div class="item"><span class="k">在线时间</span><span class="v" id="uptime">—</span></div>
    <div class="item"><span class="k">距离到期</span><span class="v" id="expire">—</span></div>
    <div class="item"><span class="k">套餐价格</span><span class="v" id="price">—</span></div>
    <div class="item"><span class="k">剩余价值</span><span class="v" id="valueLeft">—</span></div>
   </div>
- </article>
- <div class="ping-titlebar">
+ </section>
+</div>
+<div class="ping-titlebar">
   <h2>线路监测</h2>
   <div class="probe-legend" aria-label="线路监测颜色图例">
   <div class="probe-legend-row">
@@ -481,7 +489,7 @@ th{color:#a6b6c6}
    <span class="probe-legend-item"><i style="background:#be6a70"></i>&gt;220</span>
   </div>
   <div class="probe-legend-row">
-   <strong class="probe-legend-label">连接 (5次)</strong>
+   <strong class="probe-legend-label">TCP 失败</strong>
    <span class="probe-legend-item"><i style="background:#318e72"></i>0/5 失败</span>
    <span class="probe-legend-item"><i style="background:#b9aa62"></i>1/5 失败</span>
    <span class="probe-legend-item"><i style="background:#be6a70"></i>≥2/5 失败</span>
@@ -610,8 +618,10 @@ function renderPings(payload){
     if(p<=20)return "p2";
     return "p4";
   }
-  function probeHTML(t,name){
-    if(!t)return '<div class="probe"><div class="probe-head"><span class="probe-name">'+name+'</span><span class="hint">无任务</span></div></div>';
+  function probeHTML(t,name,family,firstV6){
+    var label='<span class="probe-name"><span class="probe-family '+(family==="V6"?"v6":"v4")+'">'+family+'</span><span class="probe-carrier">'+escape(name)+'</span></span>';
+    var rowClass=firstV6?"probe v6-start":"probe";
+    if(!t)return '<div class="'+rowClass+'"><div class="probe-head">'+label+'<span class="hint">无任务</span></div></div>';
     var h=t.history||[],last=h.length?h[h.length-1]:null;
     var loss=last?(last.loss==null?(last.ok?0:100):Number(last.loss)):null;
     var lat=last&&last.ok&&Number.isFinite(Number(last.latency))?Number(last.latency):null;
@@ -628,19 +638,18 @@ function renderPings(payload){
       upper+='<i class="'+classifyDelay(q.latency,q.ok)+'" title="'+escape(delayTitle)+'"></i>';
       lower+='<i class="'+classifyLoss(lp)+'" title="'+escape(slotTime+" · TCP失败率 "+lp.toFixed(1)+"%")+'"></i>';
     });
-    return '<div class="probe" title="'+escape(t.target)+'">'+
-      '<div class="probe-head"><span class="probe-name">'+escape(name)+'</span>'+
+    return '<div class="'+rowClass+'" title="'+escape(t.target)+'">'+
+      '<div class="probe-head">'+label+
       '<span class="probe-values"><strong class="'+(lat===null?'':classifyDelay(lat,true))+'">'+latencyText+'</strong><strong class="lossvalue '+(loss===null?'':classifyLoss(loss))+'">'+lossText+'</strong></span></div>'+
       '<div class="probe-gridline"><span class="gr-label">延迟</span><div class="cells">'+upper+'</div></div>'+
-      '<div class="probe-gridline"><span class="gr-label">连接</span><div class="cells">'+lower+'</div></div>'+
+      '<div class="probe-gridline"><span class="gr-label">失败</span><div class="cells">'+lower+'</div></div>'+
     '</div>';
   }
   var out="";
   groups.forEach(function(g){
-    out+='<article class="card region"><div class="region-title"><h3>'+g.name+'</h3><small>IPv4 / IPv6</small></div>';
-    [["IPv4",g.v4],["IPv6",g.v6]].forEach(function(part){
-      out+='<div class="ipheading"><b>'+part[0]+'</b></div>';
-      part[1].forEach(function(id,index){out+=probeHTML(byID[String(id)],carriers[index])});
+    out+='<article class="card region"><div class="region-title"><h3>'+g.name+'</h3><small>V4 / V6 · 电信 / 联通 / 移动</small></div>';
+    [["V4",g.v4],["V6",g.v6]].forEach(function(part){
+      part[1].forEach(function(id,index){out+=probeHTML(byID[String(id)],carriers[index],part[0],part[0]==="V6"&&index===0)});
     });
     out+='</article>';
   });

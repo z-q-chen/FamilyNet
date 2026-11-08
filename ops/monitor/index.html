@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="color-scheme" content="light">
+<meta name="color-scheme" content="dark">
 <title>FamilyNet</title>
 <style>
 
@@ -100,7 +100,7 @@ button,input{font:inherit}button{cursor:pointer}button:focus-visible,input:focus
 .cells i{border-radius:2px;min-width:0;height:10px;background:#eceff3}
 .cells .l1{background:#89d6ad}.cells .l2{background:#e2bd46}.cells .l3{background:#efab4e}.cells .l4{background:#e87865}.cells .l5{background:#dc6470}
 .cells .p0{background:#1eb485}.cells .p1{background:#a1cf67}.cells .p2{background:#e5bc46}.cells .p3{background:#ec8b54}.cells .p4{background:#e05f6a}
-.cells .unknown{background:#e9edf1}
+.cells .unknown{background:#344352}
 .ping-footer{padding-top:16px;font-size:11px;color:#8e9ba7;text-align:center}
 .audit-top{margin:4px 0 17px}.audit-top h2{font-size:21px;margin:0;font-weight:770}
 .auditbar{display:flex;gap:5px;flex-wrap:wrap}
@@ -190,14 +190,14 @@ footer{text-align:center;margin:26px 0 0;color:#9aa7b6;font-size:11px}
 .segment-track{margin-top:8px}
 .probe-gridline{grid-template-columns:27px minmax(0,1fr)}
 .probe-gridline .gr-label{display:block}
-.cells .l1{background:#25a77a}
-.cells .l2{background:#7dbd62}
-.cells .l3{background:#dec854}
-.cells .l4{background:#e9a052}
-.cells .l5{background:#e06a68}
-.cells .p0{background:#29b394}
-.cells .p2{background:#e4b94a}
-.cells .p4{background:#e36168}
+.cells .l1{background:#318e72}
+.cells .l2{background:#729f63}
+.cells .l3{background:#b9aa62}
+.cells .l4{background:#c08c60}
+.cells .l5{background:#be6a70}
+.cells .p0{background:#318e72}
+.cells .p2{background:#b9aa62}
+.cells .p4{background:#be6a70}
 .probe-values strong.l1{color:#188a60}
 .probe-values strong.l2{color:#5c973a}
 .probe-values strong.l3{color:#ae8f18}
@@ -224,6 +224,82 @@ footer{text-align:center;margin:26px 0 0;color:#9aa7b6;font-size:11px}
   .probe-legend-row{display:flex;flex-wrap:wrap;align-items:center;gap:6px 11px}
   .probe-legend-label{min-width:75px}
 }
+
+/* Night-friendly monitoring palette: visual changes only, no layout or state logic. */
+:root{
+  color-scheme:dark;
+  --bg:#111820;--paper:#1b2530;--ink:#e3eaf0;--muted:#9aaabc;
+  --line:#303e4d;--blue:#82b4e2;--green:#68bd99;
+  --purple:#ac91d3;--orange:#d49b68;--gold:#c5aa6e;--red:#d5787e;
+}
+html,body{background:var(--bg);color:var(--ink)}
+.card{background:var(--paper);border-color:var(--line);box-shadow:0 3px 14px rgba(0,0,0,.10)}
+.brandmark{background:#24364a;color:#9bc6eb}
+.identity h1{color:#a2c9e9}
+.nav{background:#202b38}
+.nav button{color:#9aacbf}
+.nav button.active{background:#30465b;color:#c9e2f6;box-shadow:none}
+.nav button:hover,.range:hover,.tinybutton:hover{color:#edf5fb}
+.online{color:#79caa4}.online .dot{background:#5bb58a}
+.chip{background:#293545;color:#b4c4d1}
+.chip.ip{background:#213d34;color:#8fc9a9}
+.chip.plan{background:#392e46;color:#b9a2d6}
+.section-label,.bottom-meta .k,.hint,.subtitle,.res-sub,.ipheading small,.gr-label{color:#9aaabc}
+.res-head span,.traffic-row span,.quota-head .maintext,.quota-head .spend{color:#adbdcb}
+.res-head b,.traffic-row b,.bottom-meta .v{color:#e3eaf0}
+.segment-track i{background:#2c3847}
+.segment-track i.filled.cpu{background:#668fb7}
+.segment-track i.filled.mem{background:#8b78bb}
+.segment-track i.filled.disk{background:#b88357}
+.segment-track i.filled.load{background:#4b9d8a}
+.speed-label{color:#c3ac75}
+.speed-label b{color:#d6bd80}
+.speed-label .arrow{color:#79abd6}
+.speedcard:last-child .arrow{color:#77bda0}
+.activity-dots i{background:#3a3740}
+.activity-dots i.lit{background:#af9360}
+.quota-head .remain{color:#7ccba5}
+.quota-progress{background:#2c3744}
+.quota-progress .fill{background:linear-gradient(90deg,#317e70,#509a80)}
+.probe{border-bottom-color:#2c3947}
+.probe-name{color:#bac9d7}
+.probe-values strong small{color:#9eabb9}
+.probe-values strong.l1,.probe-values strong.p0,.probe-values .lossvalue.p0{color:#79c9a7}
+.probe-values strong.l2{color:#9fc78e}
+.probe-values strong.l3,.probe-values strong.p2,.probe-values .lossvalue.p2{color:#d6c27a}
+.probe-values strong.l4{color:#d7a275}
+.probe-values strong.l5,.probe-values strong.p4,.probe-values .lossvalue.p4{color:#dc8e90}
+.probe-values strong:not([class*="l"]):not([class*="p"]){color:#a0adbc}
+.probe-gridline .gr-label{color:#98aabb}
+.cells i,.cells .unknown{background:#344352}
+.cells .l1,.cells .p0{background:#318e72}
+.cells .l2{background:#729f63}
+.cells .l3,.cells .p2{background:#b9aa62}
+.cells .l4{background:#c08c60}
+.cells .l5,.cells .p4{background:#be6a70}
+.cells .p1{background:#729f63}.cells .p3{background:#c08c60}
+.probe-legend{color:#a6b6c5}
+.probe-legend-label{color:#d0dce6}
+.ipheading b{background:#273e53;color:#a1c8ea}
+.ping-footer,.region-title small{color:#9baabb}
+.auditbar .range,.tinybutton{background:#263441;color:#b9c6d4;border-color:#394959}
+.auditbar .range.active{background:#29465d;border-color:#4b7592;color:#c8e5f8}
+.chartwrap{background:#16202a;border-color:#303e4d}
+.trendcard .auditstats{border-top-color:var(--line);border-bottom-color:var(--line)}
+.trendcard .stat + .stat{border-left-color:var(--line)}
+.legend,.rankmeta,.auditrankgrid table td .sub{color:#a2b2c2}
+th,td{border-bottom-color:var(--line)}
+th{color:#a6b6c6}
+.rankitem{border-bottom-color:var(--line)}
+.rankbar{background:#2a3846}
+.rankbar i{background:linear-gradient(90deg,#5683ab,#488d7d)}
+.range:focus-visible,.tinybutton:focus-visible{outline-color:var(--blue)}
+.auditgate .lock{background:#283f52;color:#a4c9e6}
+.authrow input{background:#131c26;color:#e2ebf4;border-color:#435263}
+.authrow input::placeholder{color:#93a4b6}
+.authrow button{background:#416e94;color:#f2f7fa}
+.authrow button:hover{background:#4e7fa7}
+.empty{color:#9eadbc}
 </style>
 </head>
 <body>
@@ -275,18 +351,18 @@ footer{text-align:center;margin:26px 0 0;color:#9aa7b6;font-size:11px}
   <div class="probe-legend" aria-label="线路监测颜色图例">
   <div class="probe-legend-row">
    <strong class="probe-legend-label">延迟 (ms)</strong>
-   <span class="probe-legend-item"><i style="background:#25a77a"></i>≤145</span>
-   <span class="probe-legend-item"><i style="background:#7dbd62"></i>145–160</span>
-   <span class="probe-legend-item"><i style="background:#dec854"></i>160–180</span>
-   <span class="probe-legend-item"><i style="background:#e9a052"></i>180–220</span>
-   <span class="probe-legend-item"><i style="background:#e06a68"></i>&gt;220</span>
+   <span class="probe-legend-item"><i style="background:#318e72"></i>≤145</span>
+   <span class="probe-legend-item"><i style="background:#729f63"></i>145–160</span>
+   <span class="probe-legend-item"><i style="background:#b9aa62"></i>160–180</span>
+   <span class="probe-legend-item"><i style="background:#c08c60"></i>180–220</span>
+   <span class="probe-legend-item"><i style="background:#be6a70"></i>&gt;220</span>
   </div>
   <div class="probe-legend-row">
    <strong class="probe-legend-label">连接 (5次)</strong>
-   <span class="probe-legend-item"><i style="background:#29b394"></i>0/5 失败</span>
-   <span class="probe-legend-item"><i style="background:#e4b94a"></i>1/5 失败</span>
-   <span class="probe-legend-item"><i style="background:#e36168"></i>≥2/5 失败</span>
-   <span class="probe-legend-item"><i style="background:#e9edf1"></i>无数据</span>
+   <span class="probe-legend-item"><i style="background:#318e72"></i>0/5 失败</span>
+   <span class="probe-legend-item"><i style="background:#b9aa62"></i>1/5 失败</span>
+   <span class="probe-legend-item"><i style="background:#be6a70"></i>≥2/5 失败</span>
+   <span class="probe-legend-item"><i style="background:#344352"></i>无数据</span>
   </div>
   </div>
  </div>
@@ -311,7 +387,7 @@ footer{text-align:center;margin:26px 0 0;color:#9aa7b6;font-size:11px}
       <div class="stat"><span class="subtitle">总流量</span><b id="auditTotal">—</b></div>
     </div>
     <div class="chartwrap" id="trafficChart"><div class="empty">加载中</div></div>
-    <div class="legend"><span><i style="background:#d5a43e"></i>上传</span><span><i style="background:#59a6df"></i>下载</span><span>轻点曲线选择时段</span></div>
+    <div class="legend"><span><i style="background:#bea36c"></i>上传</span><span><i style="background:#73aad4"></i>下载</span><span>轻点曲线选择时段</span></div>
   </div>
   <div class="between selectedbar">
     <div><strong id="selectedPeriod">流量排行</strong><span id="rankSummary" class="subtitle">加载中</span></div>
@@ -456,17 +532,17 @@ function renderChart(data){
   function coords(k){return data.map(function(x,i){return posX(i).toFixed(2)+","+(h-bottom-(h-bottom-top)*(Number(x[k])||0)/max).toFixed(2)}).join(" ")}
   var guide=[.25,.5,.75].map(function(p){
     var y=top+(h-bottom-top)*p;
-    return '<line x1="'+left+'" y1="'+y+'" x2="'+(w-right)+'" y2="'+y+'" stroke="#edf0f4"/>';
+    return '<line x1="'+left+'" y1="'+y+'" x2="'+(w-right)+'" y2="'+y+'" stroke="#334250"/>';
   }).join("");
   var svg='<svg viewBox="0 0 900 190" preserveAspectRatio="none" role="img" aria-label="点击时间点查看流量排行">'+guide;
   if(data.length){
-    svg+='<polyline fill="none" stroke="#d2a02e" stroke-width="2.4" stroke-linejoin="round" points="'+coords("up")+'"/>';
-    svg+='<polyline fill="none" stroke="#5a9fd5" stroke-width="2.4" stroke-linejoin="round" points="'+coords("down")+'"/>';
+    svg+='<polyline fill="none" stroke="#bea36c" stroke-width="2.4" stroke-linejoin="round" points="'+coords("up")+'"/>';
+    svg+='<polyline fill="none" stroke="#73aad4" stroke-width="2.4" stroke-linejoin="round" points="'+coords("down")+'"/>';
     var idx=data.findIndex(function(x){return selectedRange&&x.ts===selectedRange.start});
     if(idx>=0){
       var x=posX(idx);
-      svg+='<line x1="'+x+'" x2="'+x+'" y1="8" y2="'+(h-bottom)+'" stroke="#5886ae" stroke-width="1.5" stroke-dasharray="4 4"/>';
-      svg+='<circle cx="'+x+'" cy="'+(h-bottom-(h-bottom-top)*data[idx].down/max)+'" r="5" fill="#5a9fd5" stroke="#fff" stroke-width="2"/>';
+      svg+='<line x1="'+x+'" x2="'+x+'" y1="8" y2="'+(h-bottom)+'" stroke="#739cbd" stroke-width="1.5" stroke-dasharray="4 4"/>';
+      svg+='<circle cx="'+x+'" cy="'+(h-bottom-(h-bottom-top)*data[idx].down/max)+'" r="5" fill="#73aad4" stroke="#16202a" stroke-width="2"/>';
     }
   }
   svg+='<rect x="0" y="0" width="900" height="190" fill="transparent" pointer-events="all"/>';

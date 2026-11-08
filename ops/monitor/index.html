@@ -333,7 +333,7 @@ footer{text-align:center;margin:26px 0 0;color:#9aa7b6;font-size:11px}
 <script>
 (function(){
 "use strict";
-var page="home",hours=24,nextPingAt=0,stampAudit=0,busy=false,loaded=false,auditAuth="",uptimeAnchor=null,auditHistory=[],selectedRange=null,rankRequest=0;
+var page="home",hours=24,lastPingRound=-1,stampAudit=0,busy=false,loaded=false,auditAuth="",uptimeAnchor=null,auditHistory=[],selectedRange=null,rankRequest=0;
 function el(id){return document.getElementById(id)}
 function text(id,value){var e=el(id);if(e)e.textContent=value}
 function fmt(n){if(n===null||n===undefined||!Number.isFinite(Number(n)))return "—";var v=Math.abs(Number(n)),a=["B","KB","MB","GB","TB"];var i=0;while(v>=1024&&i<a.length-1){v/=1024;i++}return (Number(n)<0?"-":"")+v.toFixed(2)+" "+a[i]}
@@ -381,38 +381,19 @@ function renderState(s){
   text("interface",s.interface||"—");setActive(true);loaded=true;
 }
 
-function renderPings(data){
+function renderPings(payload){
+  var data=payload.targets||[];
   var byID={};data.forEach(function(t){byID[String(t.id)]=t});
   var groups=[
     {name:"江苏",id:"jiangsu",v4:[39,27,28],v6:[40,30,31]},
     {name:"河北",id:"hebei",v4:[38,32,33],v6:[34,35,36]}
   ],carriers=["电信","联通","移动"];
-  // One column per completed 30-minute probe round; preserve exactly 48 columns.
-  // Historic asynchronous samples within ten minutes belong to the same round.
-  var times=[];
-  data.forEach(function(t){
-    (t.history||[]).forEach(function(q){
-      if(Number.isFinite(Number(q.ts)))times.push(Number(q.ts));
-    });
-  });
-  times.sort(function(a,b){return a-b});
-  var roundTimes=[];
-  times.forEach(function(ts){
-    if(!roundTimes.length||ts-roundTimes[roundTimes.length-1]>600)roundTimes.push(ts);
-  });
-  roundTimes=roundTimes.slice(-48);
-  var columnCount=48,offset=48-roundTimes.length;
-  function roundIndex(ts){
-    var best=-1,gap=Infinity;
-    roundTimes.forEach(function(start,i){
-      var d=Math.abs(Number(ts)-start);
-      if(d<gap){gap=d;best=i}
-    });
-    return gap<=600?offset+best:-1;
-  }
+  // Exactly 48 slots. One column per stored batch ID, no time arithmetic.
+  var rounds=payload.rounds||[],columnCount=48,offset=48-rounds.length;
+  var positions={};
+  rounds.forEach(function(r,i){positions[String(r.id)]=offset+i});
   function slotTimestamp(index){
-    if(index>=offset)return roundTimes[index-offset];
-    return roundTimes.length?roundTimes[0]-(offset-index)*1800:0;
+    return index>=offset?rounds[index-offset].ts:0;
   }
   function classifyDelay(v,ok){
     if(!ok||!Number.isFinite(Number(v)))return "l5";
@@ -437,7 +418,7 @@ function renderPings(data){
     var latencyText=last?(lat===null?"超时":lat.toFixed(1)+" ms"):"—";
     var lossText=loss===null?"—":loss.toFixed(1)+"%";
     var slots=new Array(columnCount).fill(null);
-    h.forEach(function(q){var idx=roundIndex(q.ts);if(idx>=0&&idx<columnCount)slots[idx]=q});
+    h.forEach(function(q){var idx=positions[String(q.round_id)];if(idx!==undefined&&idx>=0&&idx<columnCount)slots[idx]=q});
     var upper="",lower="";
     slots.forEach(function(q,i){
       var slotTime=time(slotTimestamp(i));
@@ -569,15 +550,10 @@ async function refresh(){
   busy=true;
   try{
     var s=await api("/api/state");renderState(s);
-    if(page==="home"&&(!nextPingAt||Date.now()>=nextPingAt)){
-      nextPingAt=Date.now()+60000;
+    if(page==="home"&&(lastPingRound<0||Number(s.round_id)!==lastPingRound)){
       var p=await api("/api/pings");
       renderPings(p);
-      var latest=0;
-      p.forEach(function(t){var h=t.history||[];if(h.length)latest=Math.max(latest,Number(h[h.length-1].ts)||0)});
-      var next=latest?latest*1000+33*60000:Date.now()+30*60000;
-      while(next<=Date.now())next+=30*60000;
-      nextPingAt=next;
+      lastPingRound=Number(p.round_id)||0;
     }
     if(page==="audit"&&auditAuth&&(Date.now()-stampAudit>15000||!stampAudit)){
       var hist=await api("/api/state?audit=history&hours="+hours,true);

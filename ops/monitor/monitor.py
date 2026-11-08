@@ -327,6 +327,14 @@ class Store:
                 (int(time.time()), task, latency, 1 if ok else 0, loss)
             )
 
+    def ping_batch(self, readings):
+        """Commit a complete probe round with one shared sample timestamp."""
+        with self.lock, self.conn:
+            self.conn.executemany(
+                "INSERT INTO pings(ts,task_id,latency,ok,loss) VALUES(?,?,?,?,?)",
+                readings
+            )
+
     def cleanup(self):
         with self.lock, self.conn:
             self.conn.execute("DELETE FROM pings WHERE ts<?",
@@ -418,19 +426,35 @@ def ping_target(task):
 
 
 def ping_loop(store, tasks):
-    pool = ThreadPoolExecutor(max_workers=4, thread_name_prefix="fn-ping")
+    """Run all targets in one 30-minute batch, storing the same timestamp."""
+    if not tasks:
+        return
+    interval = max(max(60, int(t["interval"])) for t in tasks)
+    pool = ThreadPoolExecutor(max_workers=len(tasks), thread_name_prefix="fn-ping")
     try:
         while not STOP.is_set():
             now = int(time.time())
-            for task in tasks:
-                last = store.execute("SELECT MAX(ts) FROM pings WHERE task_id=?",
-                                     (task["id"],))[0][0]
-                if last is not None and now - last < max(60, task["interval"]):
-                    continue
-                def work(t):
-                    latency, ok, loss = ping_target(t)
-                    store.ping(t["id"], latency, ok, loss)
-                pool.submit(work, task)
+            latest = store.execute(
+                "SELECT MAX(ts) FROM pings WHERE task_id IN (" +
+                ",".join("?" for _ in tasks) + ")",
+                tuple(t["id"] for t in tasks)
+            )[0][0]
+            if latest is not None and now < latest + interval:
+                STOP.wait(min(30, latest + interval - now))
+                continue
+            round_ts = now
+            futures = [pool.submit(ping_target, task) for task in tasks]
+            readings = []
+            for task, future in zip(tasks, futures):
+                try:
+                    latency, ok, loss = future.result()
+                except Exception:
+                    latency, ok, loss = None, False, 100.0
+                readings.append((round_ts, task["id"], latency,
+                                 1 if ok else 0, loss))
+            if STOP.is_set():
+                break
+            store.ping_batch(readings)
             STOP.wait(30)
     finally:
         pool.shutdown(wait=False)
@@ -490,7 +514,7 @@ def capture_conntrack(local_ips):
             continue
         sport = values.get("sport", [""])[0]
         dport = values.get("dport", [""])[0]
-        proto = line.split()[0]
+        proto = line.split()[2]
         try:
             sent, received = int(values["bytes"][0]), int(values["bytes"][1])
         except (ValueError, OverflowError):

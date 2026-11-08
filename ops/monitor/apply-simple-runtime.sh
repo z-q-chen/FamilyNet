@@ -182,7 +182,7 @@ systemctl restart "$UNIT"
 
 # Check the new live JSON contract rather than just a process being alive.
 for trial in $(seq 1 20); do
-  if python3 - "$PORT" <<'PY'
+  if python3 - "$PORT" 2>"$TMP/health-error.log" <<'PY'
 import json
 import sys
 from urllib.request import urlopen
@@ -206,6 +206,10 @@ PY
   fi
   sleep 1
 done
-[ "$OK" = 1 ] || { echo "运行健康检查未通过" >&2; exit 1; }
+if [ "$OK" != 1 ]; then
+  echo "运行健康检查未通过，最后一次错误如下：" >&2
+  cat "$TMP/health-error.log" >&2
+  exit 1
+fi
 echo "FamilyNet 更新成功：后台 3 秒采样、48 轮队列、只在新轮次更新历史。"
 echo "服务器已有的监控配置、密码、历史数据及代理服务均未主动修改。"

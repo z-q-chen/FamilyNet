@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="color-scheme" content="dark">
+<meta name="color-scheme" content="light">
 <title>FamilyNet</title>
 <style>
 
@@ -100,7 +100,7 @@ button,input{font:inherit}button{cursor:pointer}button:focus-visible,input:focus
 .cells i{border-radius:2px;min-width:0;height:10px;background:#eceff3}
 .cells .l1{background:#89d6ad}.cells .l2{background:#e2bd46}.cells .l3{background:#efab4e}.cells .l4{background:#e87865}.cells .l5{background:#dc6470}
 .cells .p0{background:#1eb485}.cells .p1{background:#a1cf67}.cells .p2{background:#e5bc46}.cells .p3{background:#ec8b54}.cells .p4{background:#e05f6a}
-.cells .unknown{background:#344352}
+.cells .unknown{background:#e9edf1}
 .ping-footer{padding-top:16px;font-size:11px;color:#8e9ba7;text-align:center}
 .audit-top{margin:4px 0 17px}.audit-top h2{font-size:21px;margin:0;font-weight:770}
 .auditbar{display:flex;gap:5px;flex-wrap:wrap}
@@ -190,14 +190,14 @@ footer{text-align:center;margin:26px 0 0;color:#9aa7b6;font-size:11px}
 .segment-track{margin-top:8px}
 .probe-gridline{grid-template-columns:27px minmax(0,1fr)}
 .probe-gridline .gr-label{display:block}
-.cells .l1{background:#318e72}
-.cells .l2{background:#729f63}
-.cells .l3{background:#b9aa62}
-.cells .l4{background:#c08c60}
-.cells .l5{background:#be6a70}
-.cells .p0{background:#318e72}
-.cells .p2{background:#b9aa62}
-.cells .p4{background:#be6a70}
+.cells .l1{background:#25a77a}
+.cells .l2{background:#7dbd62}
+.cells .l3{background:#dec854}
+.cells .l4{background:#e9a052}
+.cells .l5{background:#e06a68}
+.cells .p0{background:#29b394}
+.cells .p2{background:#e4b94a}
+.cells .p4{background:#e36168}
 .probe-values strong.l1{color:#188a60}
 .probe-values strong.l2{color:#5c973a}
 .probe-values strong.l3{color:#ae8f18}
@@ -224,263 +224,69 @@ footer{text-align:center;margin:26px 0 0;color:#9aa7b6;font-size:11px}
   .probe-legend-row{display:flex;flex-wrap:wrap;align-items:center;gap:6px 11px}
   .probe-legend-label{min-width:75px}
 }
-
-/* Night-friendly monitoring palette: visual changes only, no layout or state logic. */
-:root{
-  color-scheme:dark;
-  --bg:#111820;--paper:#1b2530;--ink:#e3eaf0;--muted:#9aaabc;
-  --line:#303e4d;--blue:#82b4e2;--green:#68bd99;
-  --purple:#ac91d3;--orange:#d49b68;--gold:#c5aa6e;--red:#d5787e;
-}
-html,body{background:var(--bg);color:var(--ink)}
-.card{background:var(--paper);border-color:var(--line);box-shadow:0 3px 14px rgba(0,0,0,.10)}
-.brandmark{background:#24364a;color:#9bc6eb}
-.identity h1{color:#a2c9e9}
-.nav{background:#202b38}
-.nav button{color:#9aacbf}
-.nav button.active{background:#30465b;color:#c9e2f6;box-shadow:none}
-.nav button:hover,.range:hover,.tinybutton:hover{color:#edf5fb}
-.online{color:#79caa4}.online .dot{background:#5bb58a}
-.chip{background:#293545;color:#b4c4d1}
-.chip.ip{background:#213d34;color:#8fc9a9}
-.chip.plan{background:#392e46;color:#b9a2d6}
-.section-label,.bottom-meta .k,.hint,.subtitle,.res-sub,.ipheading small,.gr-label{color:#9aaabc}
-.res-head span,.traffic-row span,.quota-head .maintext,.quota-head .spend{color:#adbdcb}
-.res-head b,.traffic-row b,.bottom-meta .v{color:#e3eaf0}
-.segment-track i{background:#2c3847}
-.segment-track i.filled.cpu{background:#668fb7}
-.segment-track i.filled.mem{background:#8b78bb}
-.segment-track i.filled.disk{background:#b88357}
-.segment-track i.filled.load{background:#4b9d8a}
-.speed-label{color:#c3ac75}
-.speed-label b{color:#d6bd80}
-.speed-label .arrow{color:#79abd6}
-.speedcard:last-child .arrow{color:#77bda0}
-.activity-dots i{background:#3a3740}
-.activity-dots i.lit{background:#af9360}
-.quota-head .remain{color:#7ccba5}
-.quota-progress{background:#2c3744}
-.quota-progress .fill{background:linear-gradient(90deg,#317e70,#509a80)}
-.probe{border-bottom-color:#2c3947}
-.probe-name{color:#bac9d7}
-.probe-values strong small{color:#9eabb9}
-.probe-values strong.l1,.probe-values strong.p0,.probe-values .lossvalue.p0{color:#79c9a7}
-.probe-values strong.l2{color:#9fc78e}
-.probe-values strong.l3,.probe-values strong.p2,.probe-values .lossvalue.p2{color:#d6c27a}
-.probe-values strong.l4{color:#d7a275}
-.probe-values strong.l5,.probe-values strong.p4,.probe-values .lossvalue.p4{color:#dc8e90}
-.probe-values strong:not([class*="l"]):not([class*="p"]){color:#a0adbc}
-.probe-gridline .gr-label{color:#98aabb}
-.cells i,.cells .unknown{background:#344352}
-.cells .l1,.cells .p0{background:#318e72}
-.cells .l2{background:#729f63}
-.cells .l3,.cells .p2{background:#b9aa62}
-.cells .l4{background:#c08c60}
-.cells .l5,.cells .p4{background:#be6a70}
-.cells .p1{background:#729f63}.cells .p3{background:#c08c60}
-.probe-legend{color:#a6b6c5}
-.probe-legend-label{color:#d0dce6}
-.ipheading b{background:#273e53;color:#a1c8ea}
-.ping-footer,.region-title small{color:#9baabb}
-.auditbar .range,.tinybutton{background:#263441;color:#b9c6d4;border-color:#394959}
-.auditbar .range.active{background:#29465d;border-color:#4b7592;color:#c8e5f8}
-.chartwrap{background:#16202a;border-color:#303e4d}
-.trendcard .auditstats{border-top-color:var(--line);border-bottom-color:var(--line)}
-.trendcard .stat + .stat{border-left-color:var(--line)}
-.legend,.rankmeta,.auditrankgrid table td .sub{color:#a2b2c2}
-th,td{border-bottom-color:var(--line)}
-th{color:#a6b6c6}
-.rankitem{border-bottom-color:var(--line)}
-.rankbar{background:#2a3846}
-.rankbar i{background:linear-gradient(90deg,#5683ab,#488d7d)}
-.range:focus-visible,.tinybutton:focus-visible{outline-color:var(--blue)}
-.auditgate .lock{background:#283f52;color:#a4c9e6}
-.authrow input{background:#131c26;color:#e2ebf4;border-color:#435263}
-.authrow input::placeholder{color:#93a4b6}
-.authrow button{background:#416e94;color:#f2f7fa}
-.authrow button:hover{background:#4e7fa7}
-.empty{color:#9eadbc}
-
-
-/* FamilyNet fixed-density landscape dashboard, no fake subtitles. */
-.icon-definitions{position:absolute;width:0;height:0;overflow:hidden;pointer-events:none}
-.ico{display:inline-block;width:15px;height:15px;vertical-align:-.18em;flex:none;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
-.topbar{max-width:1480px;min-height:48px;padding:6px 14px;display:flex;gap:14px;align-items:center;justify-content:space-between}
-.brand{gap:8px;min-width:0}.brandmark{height:30px;width:30px;border-radius:8px}.brandmark .ico{width:19px;height:19px}
-.brandinfo{display:flex;align-items:baseline;gap:12px;min-width:0}
-.brandname{font-size:16px;letter-spacing:-.015em;white-space:nowrap}
-.brandhint{display:block!important;font-size:11px;color:#9cafc1;white-space:nowrap}
-.header-actions{display:flex;align-items:center;gap:15px;flex:none}
-.online{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:#8bceac;white-space:nowrap}
-.nav{padding:3px;gap:3px;border-radius:9px}.nav button{font-size:11px;min-height:30px;padding:6px 12px;border-radius:7px}
-.page{max-width:1480px;padding:5px 14px 14px}
-#home{min-width:0}
-.overview-grid{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1.25fr) minmax(0,.82fr);gap:10px;align-items:stretch}
-.overview-card{min-width:0;padding:10px 13px 9px;border-radius:12px;box-shadow:none}
-.panel-head{border-bottom:1px solid var(--line);margin:0 0 9px;padding:0 0 7px;min-height:24px;display:block}
-.panel-head h2{font-size:13px;font-weight:750;color:#dde8f1;line-height:1.3;margin:0}
-.resource-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:13px;row-gap:12px;margin:0}
-.res-head{gap:4px}.res-head span{font-size:11px;gap:5px;color:#b7c7d5}
-.res-head .ico{width:13px;height:13px;color:#93afc5}
-.res-head b{font-size:14px}
-.res-sub{font-size:10px;height:13px;min-height:0;margin-top:2px;color:#95a9bc}
-.segment-track{height:7px;gap:2px;margin-top:5px}
-.segment-track i{border-radius:2px}
-.speedgrid,.traffic-panel .speedgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-.speedcard{min-width:0}
-.speed-label{display:flex;align-items:center;gap:4px;color:#a6bacb;font-size:11px;min-width:0}
-.speed-label .arrow{width:13px;height:13px}
-.speed-label b{margin-left:auto;color:#e0e9f1;font-size:14px;white-space:nowrap}
-.activity-dots,.traffic-panel .activity-dots{margin:6px 0 7px;gap:3px}
-.activity-dots i{height:4px}
-.traffic-row{gap:4px}.traffic-row span{font-size:10px}.traffic-row b{font-size:12px;color:#e2eaf0}
-.quota-block,.traffic-panel .quota-block{border-top:1px solid var(--line);margin-top:10px;padding-top:9px}
-.quota-head{gap:3px}.quota-head .maintext{font-size:11px;display:inline-flex;align-items:center;gap:5px}
-.quota-head .maintext .ico{width:13px;height:13px}.quota-head .remain{font-size:12px}
-.quota-head .spend{font-size:10px;color:#a6b6c7}
-.quota-progress{height:7px;margin:7px 0 4px}
-.quota-meta{display:flex;font-size:10px;color:#95a9bc}
-.bottom-meta{display:grid;grid-template-columns:1fr;gap:0;margin:0}
-.bottom-meta .item,.bottom-meta .item:nth-child(2){display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 0;border:0;border-bottom:1px solid var(--line);min-width:0}
-.bottom-meta .item:last-child{border:0}.bottom-meta .k{font-size:11px;white-space:nowrap;margin:0}
-.bottom-meta .v{font-size:12px;font-weight:700;white-space:nowrap}
-.ping-titlebar{margin:9px 2px 5px;gap:12px;display:flex;align-items:center;justify-content:space-between;flex-wrap:nowrap}
-.ping-titlebar h2{font-size:16px;white-space:nowrap}
-.probe-legend{display:grid;grid-template-columns:62px repeat(5,max-content);column-gap:9px;row-gap:4px;font-size:9px;color:#a9b7c5}
-.probe-legend-label{font-size:9px}.probe-legend-item{gap:4px;font-size:9px}.probe-legend-item i{width:8px;height:8px}
-.region-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;align-items:start}
-.region{min-width:0;border-radius:12px;padding:10px 13px 9px}
-.region-title{display:flex;align-items:center;padding-bottom:5px;margin-bottom:2px}
-.region-title h3{font-size:15px}
-.region-title small{display:none!important}
-.probe{padding:3px 0 4px;border-bottom:1px solid #293745}
-.probe:last-child{border:0;padding-bottom:0}
-.probe.v6-start{border-top:1px solid #415264;padding-top:6px;margin-top:2px}
-.probe-head{display:flex;align-items:center;justify-content:space-between;gap:8px;line-height:1.2;margin-bottom:2px}
-.probe-name{display:inline-flex;align-items:center;gap:7px;font-size:11px;white-space:nowrap}
-.probe-family{display:inline-grid;place-items:center;min-width:24px;padding:1px 3px;border-radius:4px;background:#293d50;color:#a1c6e7;font-size:9px;font-weight:750}
-.probe-family.v6{background:#382e47;color:#c6afdf}
-.probe-carrier{font-weight:710}
-.probe-values{display:inline-flex;gap:12px;align-items:center;white-space:nowrap}
-.probe-values strong{font-size:11px}
-.probe-gridline{display:grid;grid-template-columns:22px minmax(0,1fr);gap:5px;margin:1px 0}
-.probe-gridline .gr-label{font-size:9px;color:#99adbf}
-.cells{height:7px;gap:2px}.cells i{height:7px;border-radius:1px}
-@media(min-width:901px) and (max-height:720px){
- .topbar{min-height:42px;padding-top:4px;padding-bottom:4px}
- .page{padding-top:3px;padding-bottom:7px}
- .overview-card{padding-top:8px;padding-bottom:7px}
- .panel-head{margin-bottom:6px;padding-bottom:5px}
- .resource-grid{row-gap:9px}
- .ping-titlebar{margin-top:6px;margin-bottom:4px}
- .region{padding:8px 12px 7px}
- .region-title{padding-bottom:4px}
- .probe{padding:2px 0 3px}
- .probe.v6-start{padding-top:5px;margin-top:2px}
- .probe-head{margin-bottom:1px}
- .probe-gridline{margin:1px 0}
-}
-@media(max-width:900px){
- .page{padding:7px 10px 18px}
- .overview-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
- .basics-panel{grid-column:1/-1}
- .bottom-meta{grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
- .bottom-meta .item,.bottom-meta .item:nth-child(2){display:block;border:0;border-right:1px solid var(--line);padding:0 8px 0 0}
- .bottom-meta .item:last-child{border:0}.bottom-meta .k{display:block;margin-bottom:5px}
- .brandinfo{gap:7px}.brandname{font-size:14px}.brandhint{font-size:10px}
- .header-actions{gap:8px}
-}
-@media(max-width:720px){
- .topbar{padding:8px 10px}
- .brandinfo{display:block}
- .brandhint{font-size:9px;margin-top:1px}
- .header-actions{gap:6px}
- .header-actions .online{display:none}
- .overview-grid{grid-template-columns:1fr}
- .basics-panel{grid-column:auto}
- .bottom-meta{grid-template-columns:repeat(2,minmax(0,1fr))}
- .bottom-meta .item,.bottom-meta .item:nth-child(2){display:block;padding:0;border:0}
- .ping-titlebar{flex-wrap:wrap;align-items:flex-start;gap:7px}
- .probe-legend{display:flex;flex-direction:column;gap:4px}
- .probe-legend-row{display:flex;flex-wrap:wrap;gap:5px 8px}
- .probe-legend-label{min-width:62px}
- .region-grid{grid-template-columns:1fr}
- .region{padding:10px 11px}
-}
-@media(max-width:420px){
- .topbar{gap:5px}.brandmark{width:27px;height:27px}
- .brandname{font-size:12px}
- .nav button{padding:5px 8px;font-size:10px}
- .speed-label b{font-size:13px}.quota-head .spend{font-size:9px}
- .probe-values{gap:8px}.cells{gap:1px}
-}
 </style>
 </head>
 <body>
-<svg class="icon-definitions" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><symbol id="icon-network" viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="6" rx="1.5"/><rect x="2" y="16" width="7" height="6" rx="1.5"/><rect x="15" y="16" width="7" height="6" rx="1.5"/><path d="M12 8v4M5.5 16v-4H19v4"/></symbol><symbol id="icon-server" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="8" rx="2"/><rect x="3" y="13" width="18" height="8" rx="2"/><path d="M7 7h.01M7 17h.01M11 7h7M11 17h7"/></symbol><symbol id="icon-cpu" viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2"/><rect x="9" y="9" width="6" height="6" rx="1"/><path d="M9 1v4M15 1v4M9 19v4M15 19v4M1 9h4M1 15h4M19 9h4M19 15h4"/></symbol><symbol id="icon-memory" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="10" rx="2"/><path d="M6 10v4M10 10v4M14 10v4M18 10v4M5 17v2M9 17v2M13 17v2M17 17v2"/></symbol><symbol id="icon-disk" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 12h18M7 16h.01M11 16h.01"/></symbol><symbol id="icon-gauge" viewBox="0 0 24 24"><path d="M5 19a9 9 0 1 1 14 0M12 12l4-4M8 19h8"/><circle cx="12" cy="12" r="1.5"/></symbol><symbol id="icon-upload" viewBox="0 0 24 24"><path d="M12 16V3M6 9l6-6 6 6M4 16v4h16v-4"/></symbol><symbol id="icon-download" viewBox="0 0 24 24"><path d="M12 3v13M6 10l6 6 6-6M4 18v3h16v-3"/></symbol><symbol id="icon-database" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v7c0 1.7 4 3 9 3s9-1.3 9-3V5M3 12v7c0 1.7 4 3 9 3s9-1.3 9-3v-7"/></symbol><symbol id="icon-lock" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/></symbol></svg>
 <header class="topbar">
- <div class="brand"><span class="brandmark"><svg class="ico" aria-hidden="true"><use href="#icon-server"></use></svg></span><div class="brandinfo"><div class="brandname" id="serverName">HHost · 洛杉矶 VPS</div><div class="brandhint" id="planCaption">200 Mbps · 400 GB</div></div></div>
- <div class="header-actions"><span class="online"><i class="dot" id="dot"></i><span id="activity">连接中</span></span><nav class="nav" role="tablist" aria-label="监控页面"><button data-tab="home" class="active" type="button" aria-selected="true">概览</button><button data-tab="audit" type="button" aria-selected="false">流量分析</button></nav></div>
+ <div class="brand"><span class="brandmark">▣</span><div><div class="brandname">FamilyNet</div><div class="brandhint" id="report">正在连接</div></div></div>
+ <nav class="nav" role="tablist" aria-label="监控页面"><button data-tab="home" class="active" type="button" aria-selected="true">概览</button><button data-tab="audit" type="button" aria-selected="false">流量分析</button></nav>
 </header>
 <div class="page">
 <section id="home">
-<div class="overview-grid" aria-label="服务器状态概览">
- <section class="card overview-card resources-panel" aria-labelledby="resources-title">
-  <div class="panel-head"><h2 id="resources-title">系统资源</h2></div>
-  <div class="resource-grid">
-   <div class="resource"><div class="res-head"><span><svg class="ico" aria-hidden="true"><use href="#icon-cpu"></use></svg>CPU</span><b id="cpu">—</b></div><div class="res-sub" id="cpuDesc">—</div><div class="segment-track" id="cpuCells"></div></div>
-   <div class="resource"><div class="res-head"><span><svg class="ico" aria-hidden="true"><use href="#icon-memory"></use></svg>内存</span><b id="mem">—</b></div><div class="res-sub" id="memDesc">—</div><div class="segment-track" id="memCells"></div></div>
-   <div class="resource"><div class="res-head"><span><svg class="ico" aria-hidden="true"><use href="#icon-disk"></use></svg>磁盘</span><b id="disk">—</b></div><div class="res-sub" id="diskDesc">—</div><div class="segment-track" id="diskCells"></div></div>
-   <div class="resource"><div class="res-head"><span><svg class="ico" aria-hidden="true"><use href="#icon-gauge"></use></svg>负载</span><b id="load">—</b></div><div class="res-sub">1 分钟平均负载</div><div class="segment-track" id="loadCells"></div></div>
+ <article class="card monitor">
+  <div class="titleline">
+   <div class="identity"><span class="flag">🇺🇸</span><h1 id="serverName">FamilyNet</h1></div>
+   <span class="online"><i class="dot" id="dot"></i><span id="activity">连接中</span></span>
   </div>
- </section>
- <section class="card overview-card traffic-panel" aria-labelledby="traffic-title">
-  <div class="panel-head"><h2 id="traffic-title">网络流量</h2></div>
+  <div class="chips"><span class="chip">US;VPS</span><span class="chip ip">V4</span><span class="chip ip">V6</span><span class="chip plan">FamilyNet</span></div>
+  <div class="resource-grid">
+   <div class="resource"><div class="res-head"><span>⚙ CPU</span><b id="cpu">—</b></div><div class="res-sub" id="cpuDesc">—</div><div class="segment-track" id="cpuCells"></div></div>
+   <div class="resource"><div class="res-head"><span>▤ 内存</span><b id="mem">—</b></div><div class="res-sub" id="memDesc">—</div><div class="segment-track" id="memCells"></div></div>
+   <div class="resource"><div class="res-head"><span>▣ 磁盘</span><b id="disk">—</b></div><div class="res-sub" id="diskDesc">—</div><div class="segment-track" id="diskCells"></div></div>
+   <div class="resource"><div class="res-head"><span>◷ 负载</span><b id="load">—</b></div><div class="res-sub">1 分钟平均负载</div><div class="segment-track" id="loadCells"></div></div>
+  </div>
+  <hr class="hr">
   <div class="speedgrid">
    <div class="speedcard">
-    <div class="speed-label"><svg class="ico arrow" aria-hidden="true"><use href="#icon-upload"></use></svg>上传速率 <b id="netUp">—</b></div>
+    <div class="speed-label"><span class="arrow">↑</span> 上行 <b id="netUp">—</b></div>
     <div class="activity-dots" id="upDots"></div>
-    <div class="traffic-row"><span>本周期上传</span><b id="totalUp">—</b></div>
+    <div class="traffic-row"><span><span class="globe">◎</span> 出站</span><b id="totalUp">—</b></div>
    </div>
    <div class="speedcard">
-    <div class="speed-label"><svg class="ico arrow" aria-hidden="true"><use href="#icon-download"></use></svg>下载速率 <b id="netDown">—</b></div>
+    <div class="speed-label"><span class="arrow">↓</span> 下行 <b id="netDown">—</b></div>
     <div class="activity-dots" id="downDots"></div>
-    <div class="traffic-row"><span>本周期下载</span><b id="totalDown">—</b></div>
+    <div class="traffic-row"><span><span class="globe">◎</span> 入站</span><b id="totalDown">—</b></div>
    </div>
   </div>
-  <div class="quota-block">
-   <div class="quota-head"><div class="maintext"><svg class="ico" aria-hidden="true"><use href="#icon-database"></use></svg>剩余流量 <span class="remain" id="quotaRemaining">—</span></div><div class="spend" id="quotaValue">— / 400 GB</div></div>
+  <hr class="hr">
+  <div class="quota-head"><div class="maintext">▤ 剩余流量 <span class="remain" id="quotaRemaining">—</span></div><div class="spend" id="quotaValue">— / 400 GB</div></div>
   <div class="quota-progress"><div class="fill" id="quotaBar"></div></div>
-  <div class="quota-meta"><span id="quotaHint">本周期</span></div>
-  </div>
- </section>
- <section class="card overview-card basics-panel" aria-labelledby="basics-title">
-  <div class="panel-head"><h2 id="basics-title">基础信息</h2></div>
+  <div class="quota-meta"><span id="quotaHint">本周期</span><span>流量进度</span></div>
+  <hr class="hr">
   <div class="bottom-meta">
    <div class="item"><span class="k">在线时间</span><span class="v" id="uptime">—</span></div>
    <div class="item"><span class="k">距离到期</span><span class="v" id="expire">—</span></div>
    <div class="item"><span class="k">套餐价格</span><span class="v" id="price">—</span></div>
    <div class="item"><span class="k">剩余价值</span><span class="v" id="valueLeft">—</span></div>
   </div>
- </section>
-</div>
-<div class="ping-titlebar">
+ </article>
+ <div class="ping-titlebar">
   <h2>线路监测</h2>
   <div class="probe-legend" aria-label="线路监测颜色图例">
   <div class="probe-legend-row">
    <strong class="probe-legend-label">延迟 (ms)</strong>
-   <span class="probe-legend-item"><i style="background:#318e72"></i>≤145</span>
-   <span class="probe-legend-item"><i style="background:#729f63"></i>145–160</span>
-   <span class="probe-legend-item"><i style="background:#b9aa62"></i>160–180</span>
-   <span class="probe-legend-item"><i style="background:#c08c60"></i>180–220</span>
-   <span class="probe-legend-item"><i style="background:#be6a70"></i>&gt;220</span>
+   <span class="probe-legend-item"><i style="background:#25a77a"></i>≤145</span>
+   <span class="probe-legend-item"><i style="background:#7dbd62"></i>145–160</span>
+   <span class="probe-legend-item"><i style="background:#dec854"></i>160–180</span>
+   <span class="probe-legend-item"><i style="background:#e9a052"></i>180–220</span>
+   <span class="probe-legend-item"><i style="background:#e06a68"></i>&gt;220</span>
   </div>
   <div class="probe-legend-row">
-   <strong class="probe-legend-label">TCP 失败</strong>
-   <span class="probe-legend-item"><i style="background:#318e72"></i>0/5 失败</span>
-   <span class="probe-legend-item"><i style="background:#b9aa62"></i>1/5 失败</span>
-   <span class="probe-legend-item"><i style="background:#be6a70"></i>≥2/5 失败</span>
-   <span class="probe-legend-item"><i style="background:#344352"></i>无数据</span>
+   <strong class="probe-legend-label">连接 (5次)</strong>
+   <span class="probe-legend-item"><i style="background:#29b394"></i>0/5 失败</span>
+   <span class="probe-legend-item"><i style="background:#e4b94a"></i>1/5 失败</span>
+   <span class="probe-legend-item"><i style="background:#e36168"></i>≥2/5 失败</span>
+   <span class="probe-legend-item"><i style="background:#e9edf1"></i>无数据</span>
   </div>
   </div>
  </div>
@@ -489,7 +295,7 @@ th{color:#a6b6c6}
 </section>
 <section id="audit" hidden>
  <div id="auditGate" class="card auditgate">
-  <div class="lock" aria-hidden="true"><svg class="ico" aria-hidden="true"><use href="#icon-lock"></use></svg></div><h3>流量分析</h3><p>输入密码查看网络访问与历史记录</p>
+  <div class="lock" aria-hidden="true">🔒</div><h3>流量分析</h3><p>输入密码查看网络访问与历史记录</p>
   <form id="auditLoginForm" autocomplete="on"><input class="auth-username" type="text" name="username" autocomplete="username" value="admin" readonly tabindex="-1" aria-hidden="true"><div class="authrow"><input id="auditPassword" name="password" type="password" placeholder="流量分析密码" aria-label="流量分析密码" required autocomplete="current-password"><button type="submit">解锁</button></div><p class="autherror" id="authError" role="alert"></p></form>
  </div>
  <div id="auditContent" hidden>
@@ -505,7 +311,7 @@ th{color:#a6b6c6}
       <div class="stat"><span class="subtitle">总流量</span><b id="auditTotal">—</b></div>
     </div>
     <div class="chartwrap" id="trafficChart"><div class="empty">加载中</div></div>
-    <div class="legend"><span><i style="background:#bea36c"></i>上传</span><span><i style="background:#73aad4"></i>下载</span><span>轻点曲线选择时段</span></div>
+    <div class="legend"><span><i style="background:#d5a43e"></i>上传</span><span><i style="background:#59a6df"></i>下载</span><span>轻点曲线选择时段</span></div>
   </div>
   <div class="between selectedbar">
     <div><strong id="selectedPeriod">流量排行</strong><span id="rankSummary" class="subtitle">加载中</span></div>
@@ -536,7 +342,7 @@ function bar(id,p){el(id).style.width=Math.max(0,Math.min(100,p)).toFixed(2)+"%"
 function segmented(id,p,type){var n=Math.max(0,Math.min(20,Math.ceil((p||0)/5))),out="";for(var i=0;i<20;i++)out+='<i class="'+(i<n?"filled "+type:"")+'"></i>';el(id).innerHTML=out}
 function dots(id,rate){var n=Math.max(1,Math.min(26,Math.ceil(Math.log2(Math.max(1,rate)/256+1)*3))),out="";for(var i=0;i<26;i++)out+='<i class="'+(i>=26-n?"lit":"")+'"></i>';el(id).innerHTML=out}
 function time(ts){return ts?new Date(ts*1000).toLocaleString("zh-CN",{hour12:false}):"—"}
-function days(sec){var n=Math.max(0,Math.floor(sec||0));return (Math.floor(n/86400)?Math.floor(n/86400)+"天":"")+Math.floor(n%86400/3600)+"小时"+Math.floor(n%3600/60)+"分"}
+function days(sec){var n=Math.max(0,Math.floor(sec||0));return Math.floor(n/86400)+" 天 "+String(Math.floor(n%86400/3600)).padStart(2,"0")+" 时 "+String(Math.floor(n%3600/60)).padStart(2,"0")+" 分 "+String(n%60).padStart(2,"0")+" 秒"}
 function escape(s){return String(s===undefined||s===null?"":s).replace(/[&<>"']/g,function(x){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[x]})}
 function authHeader(password){var bytes=new TextEncoder().encode("admin:"+password),v="";bytes.forEach(function(b){v+=String.fromCharCode(b)});return "Basic "+btoa(v)}
 async function api(url,isPrivate){var opts={cache:"no-store",credentials:"same-origin"};if(isPrivate&&auditAuth)opts.headers={Authorization:auditAuth};var r=await fetch(url,opts);if(r.status===401){var err=new Error("unauthorized");err.authFailure=true;throw err}if(!r.ok)throw new Error(String(r.status));return r.json()}
@@ -544,10 +350,9 @@ function showAuditGate(){auditAuth="";stampAudit=0;selectedRange=null;rankReques
 async function unlockAudit(password){auditAuth=authHeader(password);try{await api("/api/state?audit=auth",true);el("auditGate").hidden=true;el("auditContent").hidden=false;el("auditPassword").value="";text("authError","");stampAudit=0;refresh()}catch(e){auditAuth="";el("auditPassword").value="";text("authError",e.authFailure?"密码错误":"连接验证接口失败，请检查网络")}}
 function setActive(status){el("dot").classList.toggle("off",!status);text("activity",status?"已连接":"连接异常")}
 function renderState(s){
-  text("serverName","HHost · 洛杉矶 VPS");
-   text("planCaption","200 Mbps · "+(Number(s.quota)>0?Math.round(Number(s.quota)/1073741824)+" GB":"400 GB"));
-  
-  document.title="HHost · FamilyNet";
+  text("serverName","FamilyNet");
+  text("report","最近更新 "+time(s.time));
+  document.title="FamilyNet";
   uptimeAnchor={seconds:Number(s.uptime)||0,at:performance.now()};
   text("uptime",days(s.uptime));
   text("cpu",s.cpu===null?"—":Number(s.cpu).toFixed(2)+"%");
@@ -605,10 +410,8 @@ function renderPings(payload){
     if(p<=20)return "p2";
     return "p4";
   }
-  function probeHTML(t,name,family,firstV6){
-    var label='<span class="probe-name"><span class="probe-family '+(family==="V6"?"v6":"v4")+'">'+family+'</span><span class="probe-carrier">'+escape(name)+'</span></span>';
-    var rowClass=firstV6?"probe v6-start":"probe";
-    if(!t)return '<div class="'+rowClass+'"><div class="probe-head">'+label+'<span class="hint">无任务</span></div></div>';
+  function probeHTML(t,name){
+    if(!t)return '<div class="probe"><div class="probe-head"><span class="probe-name">'+name+'</span><span class="hint">无任务</span></div></div>';
     var h=t.history||[],last=h.length?h[h.length-1]:null;
     var loss=last?(last.loss==null?(last.ok?0:100):Number(last.loss)):null;
     var lat=last&&last.ok&&Number.isFinite(Number(last.latency))?Number(last.latency):null;
@@ -625,18 +428,19 @@ function renderPings(payload){
       upper+='<i class="'+classifyDelay(q.latency,q.ok)+'" title="'+escape(delayTitle)+'"></i>';
       lower+='<i class="'+classifyLoss(lp)+'" title="'+escape(slotTime+" · TCP失败率 "+lp.toFixed(1)+"%")+'"></i>';
     });
-    return '<div class="'+rowClass+'" title="'+escape(t.target)+'">'+
-      '<div class="probe-head">'+label+
+    return '<div class="probe" title="'+escape(t.target)+'">'+
+      '<div class="probe-head"><span class="probe-name">'+escape(name)+'</span>'+
       '<span class="probe-values"><strong class="'+(lat===null?'':classifyDelay(lat,true))+'">'+latencyText+'</strong><strong class="lossvalue '+(loss===null?'':classifyLoss(loss))+'">'+lossText+'</strong></span></div>'+
       '<div class="probe-gridline"><span class="gr-label">延迟</span><div class="cells">'+upper+'</div></div>'+
-      '<div class="probe-gridline"><span class="gr-label">失败</span><div class="cells">'+lower+'</div></div>'+
+      '<div class="probe-gridline"><span class="gr-label">连接</span><div class="cells">'+lower+'</div></div>'+
     '</div>';
   }
   var out="";
   groups.forEach(function(g){
-    out+='<article class="card region"><div class="region-title"><h3>'+g.name+'</h3></div>';
-    [["V4",g.v4],["V6",g.v6]].forEach(function(part){
-      part[1].forEach(function(id,index){out+=probeHTML(byID[String(id)],carriers[index],part[0],part[0]==="V6"&&index===0)});
+    out+='<article class="card region"><div class="region-title"><h3>'+g.name+'</h3><small>IPv4 / IPv6</small></div>';
+    [["IPv4",g.v4],["IPv6",g.v6]].forEach(function(part){
+      out+='<div class="ipheading"><b>'+part[0]+'</b></div>';
+      part[1].forEach(function(id,index){out+=probeHTML(byID[String(id)],carriers[index])});
     });
     out+='</article>';
   });
@@ -652,17 +456,17 @@ function renderChart(data){
   function coords(k){return data.map(function(x,i){return posX(i).toFixed(2)+","+(h-bottom-(h-bottom-top)*(Number(x[k])||0)/max).toFixed(2)}).join(" ")}
   var guide=[.25,.5,.75].map(function(p){
     var y=top+(h-bottom-top)*p;
-    return '<line x1="'+left+'" y1="'+y+'" x2="'+(w-right)+'" y2="'+y+'" stroke="#334250"/>';
+    return '<line x1="'+left+'" y1="'+y+'" x2="'+(w-right)+'" y2="'+y+'" stroke="#edf0f4"/>';
   }).join("");
   var svg='<svg viewBox="0 0 900 190" preserveAspectRatio="none" role="img" aria-label="点击时间点查看流量排行">'+guide;
   if(data.length){
-    svg+='<polyline fill="none" stroke="#bea36c" stroke-width="2.4" stroke-linejoin="round" points="'+coords("up")+'"/>';
-    svg+='<polyline fill="none" stroke="#73aad4" stroke-width="2.4" stroke-linejoin="round" points="'+coords("down")+'"/>';
+    svg+='<polyline fill="none" stroke="#d2a02e" stroke-width="2.4" stroke-linejoin="round" points="'+coords("up")+'"/>';
+    svg+='<polyline fill="none" stroke="#5a9fd5" stroke-width="2.4" stroke-linejoin="round" points="'+coords("down")+'"/>';
     var idx=data.findIndex(function(x){return selectedRange&&x.ts===selectedRange.start});
     if(idx>=0){
       var x=posX(idx);
-      svg+='<line x1="'+x+'" x2="'+x+'" y1="8" y2="'+(h-bottom)+'" stroke="#739cbd" stroke-width="1.5" stroke-dasharray="4 4"/>';
-      svg+='<circle cx="'+x+'" cy="'+(h-bottom-(h-bottom-top)*data[idx].down/max)+'" r="5" fill="#73aad4" stroke="#16202a" stroke-width="2"/>';
+      svg+='<line x1="'+x+'" x2="'+x+'" y1="8" y2="'+(h-bottom)+'" stroke="#5886ae" stroke-width="1.5" stroke-dasharray="4 4"/>';
+      svg+='<circle cx="'+x+'" cy="'+(h-bottom-(h-bottom-top)*data[idx].down/max)+'" r="5" fill="#5a9fd5" stroke="#fff" stroke-width="2"/>';
     }
   }
   svg+='<rect x="0" y="0" width="900" height="190" fill="transparent" pointer-events="all"/>';

@@ -8,7 +8,7 @@ APP=/opt/familynet-monitor
 DB=/var/lib/familynet-monitor/monitor.db
 UNIT=familynet-monitor.service
 PORT=25775
-PIN=7f4f7bd22d820f18a44b3184a4c1b5e15cf38f0b
+PIN=9cde47064ad128dd0a119cdb682a903540ae59b0
 BASE="https://raw.githubusercontent.com/z-q-chen/FamilyNet/$PIN/ops/monitor"
 TMP=$(mktemp -d)
 CHANGED=0
@@ -141,6 +141,17 @@ PY
 
 python3 -m py_compile "$TMP/merged.py"
 python3 "$TMP/test.py" "$TMP/merged.py"
+# Check the embedded browser script as well, when Node.js is available.
+if command -v node >/dev/null 2>&1; then
+  python3 - "$TMP/index.html" "$TMP/ui.js" <<'PY'
+from pathlib import Path
+import sys
+html = Path(sys.argv[1]).read_text(encoding="utf-8")
+assert html.count("<script>") == 1 and html.count("</script>") == 1
+Path(sys.argv[2]).write_text(html.split("<script>", 1)[1].split("</script>", 1)[0], encoding="utf-8")
+PY
+  node --check "$TMP/ui.js"
+fi
 python3 - "$TMP/index.html" <<'PY'
 from pathlib import Path
 import sys

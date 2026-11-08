@@ -328,19 +328,32 @@ class Store:
             )
 
     def ping_batch(self, readings):
-        """Commit a complete probe round with one shared sample timestamp."""
+        """Push one complete 12-probe round into a persistent 48-round FIFO."""
+        if not readings:
+            return
         with self.lock, self.conn:
             self.conn.executemany(
                 "INSERT INTO pings(ts,task_id,latency,ok,loss) VALUES(?,?,?,?,?)",
                 readings
             )
+            # For legacy data, probe timestamps within ten minutes belong
+            # to the same round. New synchronized batches share one timestamp.
+            # Expire by number of rounds, never by elapsed wall-clock hours.
+            stamps = [row[0] for row in self.conn.execute(
+                "SELECT ts FROM pings ORDER BY ts,id"
+            )]
+            rounds = []
+            for ts in stamps:
+                if not rounds or ts - rounds[-1] > 600:
+                    rounds.append(ts)
+            if len(rounds) > 48:
+                self.conn.execute("DELETE FROM pings WHERE ts < ?",
+                                  (rounds[-48],))
 
     def cleanup(self):
         with self.lock, self.conn:
-            # Keep probe records longer than the 24-hour chart so its oldest
-            # completed round is not pruned between scheduled measurements.
-            self.conn.execute("DELETE FROM pings WHERE ts<?",
-                              (int(time.time()) - 48 * 3600,))
+            # Probe samples are a persistent 48-round queue, maintained
+            # atomically in ping_batch(). No time-based cleanup here.
             self.conn.execute("DELETE FROM flows WHERE last_ts<?",
                               (int(time.time()) - 86400,))
             self.conn.execute("DELETE FROM flow_usage WHERE bucket<?",
@@ -951,12 +964,10 @@ class Monitor:
         return [{"ts": ts, "up": up, "down": down} for ts, up, down in data]
 
     def pings(self):
-        # Exactly the last 48 completed observations per task (not a rolling
-        # wall-clock 24h cutoff that loses the leftmost sample between rounds).
-        since = int(time.time()) - 48 * 3600
+        # Stored samples already form a rolling 48-round FIFO. Do not apply
+        # another wall-clock cutoff or let each target shift independently.
         data = self.db.execute(
-            "SELECT task_id,ts,latency,ok,loss FROM pings "
-            "WHERE ts>=? ORDER BY ts,id", (since,)
+            "SELECT task_id,ts,latency,ok,loss FROM pings ORDER BY ts,id"
         )
         by_id = {}
         for task, ts, latency, ok, loss in data:
@@ -965,7 +976,7 @@ class Monitor:
                  "loss": round(float(loss), 1) if loss is not None else (0.0 if ok else 100.0)}
             )
         return [{"id": task["id"], "name": task["name"], "target": task["target"],
-                 "history": by_id.get(str(task["id"]), [])[-48:]}
+                 "history": by_id.get(str(task["id"]), [])}
                 for task in self.cfg["targets"]]
 
     def resolved_names(self, ips):

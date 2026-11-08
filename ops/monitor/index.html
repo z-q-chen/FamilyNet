@@ -210,11 +210,13 @@ footer{text-align:center;margin:26px 0 0;color:#9aa7b6;font-size:11px}
 .auth-username{position:absolute;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none}
 
 /* Inline, readable probe legend */
-.probe-legend{display:grid;gap:8px;margin:-3px 2px 14px;font-size:11px;color:#718092}
-.probe-legend-row{display:flex;align-items:center;flex-wrap:wrap;column-gap:12px;row-gap:7px}
+.ping-titlebar{align-items:center}
+.probe-legend{display:grid;gap:4px;margin:0 0 0 auto;font-size:11px;color:#718092}
+.probe-legend-row{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;column-gap:12px;row-gap:4px}
 .probe-legend-label{min-width:68px;font-size:11px;font-weight:700;color:#586878;white-space:nowrap}
 .probe-legend-item{display:inline-flex;align-items:center;gap:5px;white-space:nowrap;font-variant-numeric:tabular-nums}
 .probe-legend-item i{display:inline-block;width:10px;height:10px;border-radius:2px;flex:none}
+@media(max-width:760px){.ping-titlebar{align-items:flex-start}.probe-legend{margin:0}.probe-legend-row{justify-content:flex-start}}
 </style>
 </head>
 <body>
@@ -263,8 +265,7 @@ footer{text-align:center;margin:26px 0 0;color:#9aa7b6;font-size:11px}
  </article>
  <div class="ping-titlebar">
   <h2>线路监测</h2>
- </div>
- <div class="probe-legend" aria-label="线路监测颜色图例">
+  <div class="probe-legend" aria-label="线路监测颜色图例">
   <div class="probe-legend-row">
    <strong class="probe-legend-label">延迟 (ms)</strong>
    <span class="probe-legend-item"><i style="background:#20aa83"></i>≤145</span>
@@ -279,6 +280,7 @@ footer{text-align:center;margin:26px 0 0;color:#9aa7b6;font-size:11px}
    <span class="probe-legend-item"><i style="background:#e4b94a"></i>1/5 失败</span>
    <span class="probe-legend-item"><i style="background:#e36168"></i>≥2/5 失败</span>
    <span class="probe-legend-item"><i style="background:#e9edf1"></i>无数据</span>
+  </div>
   </div>
  </div>
  <div class="region-grid" id="pinggrid"><div class="card region"><div class="empty">正在加载线路检测历史…</div></div></div>

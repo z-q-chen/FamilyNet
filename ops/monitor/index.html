@@ -182,20 +182,31 @@ footer{text-align:center;margin:26px 0 0;color:#9aa7b6;font-size:11px}
 @media(max-width:560px){.monitor{padding:16px 13px}.resource-grid{gap:11px}.hr{margin:13px 0}.speed-label b{font-size:16px}.bottom-meta{gap:8px}.region{padding:13px}.auditcard{padding:14px}.trendcard .stat{padding:8px 5px}.trendcard .stat b{font-size:15px}.chartwrap svg{height:160px}.chartwrap{min-height:160px}.nav button{padding:7px 8px}}
 
 
-/* FamilyNet: compact UI and 3-level connection quality */
+/* FamilyNet: compact UI with five-tier latency and three-tier TCP status */
 .chips,.brandhint,.ping-titlebar .hint,.ping-titlebar .key,
 .region-title small,.quota-meta span:last-child,footer{display:none!important}
 .resource-grid{margin-top:18px}
 .resource:first-child .res-sub,.resource:last-child .res-sub{visibility:hidden}
 .segment-track{margin-top:8px}
-.probe-gridline{grid-template-columns:minmax(0,1fr)}
-.probe-gridline .gr-label{display:none}
-.cells .l1,.cells .p0{background:#22ad82}
-.cells .l2,.cells .p2{background:#e8b542}
-.cells .l3,.cells .p4{background:#e36168}
-.probe-values strong.l1,.probe-values strong.p0{color:#199c78}
-.probe-values strong.l2,.probe-values strong.p2{color:#bb8b17}
-.probe-values strong.l3,.probe-values strong.p4{color:#d4555c}
+.probe-gridline{grid-template-columns:27px minmax(0,1fr)}
+.probe-gridline .gr-label{display:block}
+.cells .l1{background:#159f82}
+.cells .l2{background:#67c78c}
+.cells .l3{background:#e4bc48}
+.cells .l4{background:#ed964a}
+.cells .l5{background:#e36168}
+.cells .p0{background:#29b394}
+.cells .p2{background:#e4b94a}
+.cells .p4{background:#e36168}
+.probe-values strong.l1{color:#159f82}
+.probe-values strong.l2{color:#57ad7a}
+.probe-values strong.l3{color:#ba921f}
+.probe-values strong.l4{color:#dd863a}
+.probe-values strong.l5{color:#d4555c}
+.probe-values strong.p0{color:#199c78}
+.probe-values strong.p2{color:#bb8b17}
+.probe-values strong.p4{color:#d4555c}
+.probe-values strong:not([class*="l"]):not([class*="p"]){color:#8b96a4}
 .auth-username{position:absolute;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none}
 </style>
 </head>
@@ -348,10 +359,13 @@ function renderPings(data){
   data.forEach(function(t){var h=t.history||[];if(h.length)mostRecentTs=Math.max(mostRecentTs,Number(h[h.length-1].ts)||0)});
   var epoch=Math.floor((mostRecentTs||Date.now()/1000)/1800);
   function classifyDelay(v,ok){
-    if(!ok||!Number.isFinite(Number(v)))return "l3";
-    if(Number(v)<=180)return "l1";
-    if(Number(v)<=220)return "l2";
-    return "l3";
+    if(!ok||!Number.isFinite(Number(v)))return "l5";
+    v=Number(v);
+    if(v<=145)return "l1";
+    if(v<=160)return "l2";
+    if(v<=180)return "l3";
+    if(v<=220)return "l4";
+    return "l5";
   }
   function classifyLoss(p){
     if(!Number.isFinite(Number(p)))return "p4";
@@ -381,7 +395,7 @@ function renderPings(data){
       '<div class="probe-head"><span class="probe-name">'+escape(name)+'</span>'+
       '<span class="probe-values"><strong class="'+(lat===null?'':classifyDelay(lat,true))+'">'+latencyText+'</strong><strong class="lossvalue '+(loss===null?'':classifyLoss(loss))+'">'+lossText+'</strong></span></div>'+
       '<div class="probe-gridline"><span class="gr-label">延迟</span><div class="cells">'+upper+'</div></div>'+
-      '<div class="probe-gridline"><span class="gr-label">丢包</span><div class="cells">'+lower+'</div></div>'+
+      '<div class="probe-gridline"><span class="gr-label">连接</span><div class="cells">'+lower+'</div></div>'+
     '</div>';
   }
   var out="";
